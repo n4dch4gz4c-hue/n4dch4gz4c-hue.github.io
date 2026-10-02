@@ -90,14 +90,14 @@
   #maclar .card { background: rgba(255, 244, 232, .75); }
   #maclar .card .v, #maclar td { color: #3a2416; }
   #maclar input, #maclar select, #maclar button.ghost { color: #3a2416; background: rgba(255, 248, 240, .85); border-color: rgba(160, 90, 40, .35); }
-  #maclar button:not(.ghost):not(.warn) { background: #e07a32; color: #fff; }
+  #maclar button:not(.ghost):not(.warn):not(.pdf-btn) { background: #e07a32; color: #fff; }
   #antrenman .panel { background: rgba(236, 224, 160, .9); border-color: rgba(170, 140, 30, .55); color: #3a3414; }
   #antrenman h2, #antrenman label, #antrenman .note, #antrenman th { color: #5c5428; }
   #antrenman .card { background: rgba(255, 248, 210, .75); }
   #antrenman .card .v, #antrenman td { color: #3a3414; }
   #antrenman input, #antrenman select, #antrenman textarea, #antrenman button.ghost { color: #3a3414; background: rgba(255, 252, 230, .88); border-color: rgba(140, 120, 30, .35); }
   #antrenman textarea { width: 100%; min-height: 110px; resize: vertical; }
-  #antrenman button:not(.ghost):not(.warn):not(.tone) { background: #d4a017; color: #2c2410; }
+  #antrenman button:not(.ghost):not(.warn):not(.tone):not(.pdf-btn) { background: #d4a017; color: #2c2410; }
   #typeBtns button.tone { border: none; }
   #typeBtns button.t0 { background: #6b4f08; color: #fff4c8; }
   #typeBtns button.t1 { background: #242424; color: #f4f4f4; }
@@ -113,6 +113,8 @@
   .top h1 { margin: 8px 0 0; font-size: 34px; text-shadow: 0 2px 12px rgba(0,0,0,.45); }
   .top .sub { text-shadow: 0 1px 8px rgba(0,0,0,.55); }
   #cloud { font-size: 12px; color: #ffe9a3; min-height: 16px; margin-top: 4px; text-shadow: 0 1px 6px rgba(0,0,0,.65); }
+  .pdf-btn { display: block; width: 100%; margin-top: 12px; background: #1f6b4a; color: #fff; font-size: 17px; padding: 14px; border-radius: 14px; }
+  .pdf-btn.hidden { display: none; }
   #maclar > .sec { color: #e07a32; font-size: 26px; margin: 8px 0 12px; }
   #antrenman > .sec { color: #e2c04a; font-size: 26px; margin: 18px 0 12px; }
   #aSumBox .ablock { border-radius: 14px; padding: 14px 16px; margin-top: 8px; }
@@ -180,8 +182,11 @@
         <button type="button" id="antStatBtn">Antrenman İstatistiği</button>
       </div>
       <div id="teamStatBox" class="hidden"></div>
+      <button type="button" class="pdf-btn hidden" id="pdfTeam" data-ids="teamStatBox" data-title="Eymen Takım İstatistiği">PDF Paylaş</button>
       <div id="eymenStatBox" class="hidden"></div>
+      <button type="button" class="pdf-btn hidden" id="pdfEymen" data-ids="eymenStatBox" data-title="Eymen Bireysel İstatistik">PDF Paylaş</button>
       <div id="antStatBox" class="hidden"></div>
+      <button type="button" class="pdf-btn hidden" id="pdfAnt" data-ids="antStatBox" data-title="Eymen Antrenman İstatistiği">PDF Paylaş</button>
     </div>
     <div class="actions">
       <label>Takım <input id="team" placeholder="Takım Adı"></label>
@@ -225,17 +230,21 @@
         <button id="mSave">Maçı Kaydet</button>
         <button class="ghost" id="mClear">Temizle</button>
       </div>
+      <button type="button" class="pdf-btn" data-ids="mForm" data-title="Eymen Maç Girişi">PDF Paylaş</button>
     </div>
     <div class="panel hidden" id="mList">
       <h2>Bu Sezonun Maçları</h2>
+      <button type="button" class="pdf-btn" data-ids="mList" data-title="Eymen Bu Sezonun Maçları">PDF Paylaş</button>
       <div id="mTable"></div>
     </div>
     <div class="panel hidden" id="mStats">
       <h2 id="mStatsTitle">Maç İstatistiği</h2>
+      <button type="button" class="pdf-btn" data-ids="mStats" data-title="Eymen Maç İstatistiği">PDF Paylaş</button>
       <div id="mCards"></div>
     </div>
     <div class="panel hidden" id="mEymen">
       <h2>Bireysel İstatistik</h2>
+      <button type="button" class="pdf-btn" data-ids="mEymen" data-title="Eymen Bireysel İstatistik">PDF Paylaş</button>
       <div id="mEymenBox"></div>
     </div>
     <div class="panel hidden" id="aStats">
@@ -278,9 +287,13 @@
         <button id="aSave">Antrenmanı Kaydet</button>
         <button class="ghost" id="aClear">Temizle</button>
       </div>
+      <button type="button" class="pdf-btn" data-ids="aForm,aList" data-title="Eymen Antrenman Girişi">PDF Paylaş</button>
     </div>
     <div class="panel" id="aList"><h2>Bu Sezonun Antrenmanları</h2><div id="aTable"></div></div>
-    <div class="panel hidden" id="aSum"><div id="aSumBox"></div></div>
+    <div class="panel hidden" id="aSum">
+      <button type="button" class="pdf-btn" data-ids="aSum" data-title="Eymen Antrenman İstatistikleri">PDF Paylaş</button>
+      <div id="aSumBox"></div>
+    </div>
   </section>
 </div>
 <script>
@@ -580,24 +593,28 @@ document.getElementById("yearCards").onclick = (e) => {
   show("eymenStatBox", false);
   show("antStatBox", false);
   paintSeasonStats();
+  syncSeasonPdf();
 };
 document.getElementById("teamStatBtn").onclick = () => {
   show("eymenStatBox", false);
   show("antStatBox", false);
   show("teamStatBox", true);
   paintSeasonStats();
+  syncSeasonPdf();
 };
 document.getElementById("eymenStatBtn").onclick = () => {
   show("teamStatBox", false);
   show("antStatBox", false);
   show("eymenStatBox", true);
   paintSeasonStats();
+  syncSeasonPdf();
 };
 document.getElementById("antStatBtn").onclick = () => {
   show("teamStatBox", false);
   show("eymenStatBox", false);
   show("antStatBox", true);
   paintSeasonStats();
+  syncSeasonPdf();
 };
 document.getElementById("season").onchange = () => {
   state.active = document.getElementById("season").value;
@@ -920,6 +937,91 @@ document.getElementById("avatarFile").onchange = function (e) {
   };
   reader.readAsDataURL(f);
 };
+function syncSeasonPdf() {
+  show("pdfTeam", !document.getElementById("teamStatBox").classList.contains("hidden"));
+  show("pdfEymen", !document.getElementById("eymenStatBox").classList.contains("hidden"));
+  show("pdfAnt", !document.getElementById("antStatBox").classList.contains("hidden"));
+}
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const old = document.querySelector('script[src="' + src + '"]');
+    if (old) { resolve(); return; }
+    const s = document.createElement("script");
+    s.src = src;
+    s.onload = () => resolve();
+    s.onerror = () => { s.remove(); reject(new Error("script")); };
+    document.head.appendChild(s);
+  });
+}
+async function sharePdf(ids, title, btn) {
+  const label = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "PDF hazırlanıyor";
+  try {
+    await loadScript("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js");
+    await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+    const shots = [];
+    for (const id of ids) {
+      const el = document.getElementById(id);
+      if (!el || el.classList.contains("hidden")) continue;
+      const buttons = el.querySelectorAll(".pdf-btn");
+      buttons.forEach(b => { b.style.visibility = "hidden"; });
+      const canvas = await html2canvas(el, { backgroundColor: "#f6f1e6", scale: 2, useCORS: true });
+      buttons.forEach(b => { b.style.visibility = ""; });
+      shots.push(canvas);
+    }
+    if (!shots.length) throw new Error("bos");
+    const width = Math.max.apply(null, shots.map(c => c.width));
+    const height = shots.reduce((sum, c) => sum + c.height, 0) + 24 * (shots.length + 1);
+    const sheet = document.createElement("canvas");
+    sheet.width = width;
+    sheet.height = height;
+    const ctx = sheet.getContext("2d");
+    ctx.fillStyle = "#f6f1e6";
+    ctx.fillRect(0, 0, width, height);
+    let top = 24;
+    shots.forEach(c => {
+      ctx.drawImage(c, 0, top);
+      top += c.height + 24;
+    });
+    const pdf = new window.jspdf.jsPDF("p", "pt", "a4");
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const margin = 28;
+    const imgW = pageW - margin * 2;
+    const imgH = sheet.height * imgW / sheet.width;
+    const img = sheet.toDataURL("image/jpeg", 0.9);
+    let position = margin;
+    pdf.addImage(img, "JPEG", margin, position, imgW, imgH);
+    let left = imgH - (pageH - margin);
+    while (left > 0) {
+      position = margin - (imgH - left);
+      pdf.addPage();
+      pdf.addImage(img, "JPEG", margin, position, imgW, imgH);
+      left -= pageH - margin;
+    }
+    const blob = pdf.output("blob");
+    const file = new File([blob], title + ".pdf", { type: "application/pdf" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: title });
+    } else {
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = title + ".pdf";
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(link.href), 4000);
+    }
+  } catch (e) {
+    if (!e || e.name !== "AbortError") alert("PDF paylaşılamadı.");
+  }
+  btn.disabled = false;
+  btn.textContent = label;
+}
+document.body.addEventListener("click", (e) => {
+  const btn = e.target.closest(".pdf-btn");
+  if (!btn) return;
+  sharePdf((btn.dataset.ids || "").split(","), btn.dataset.title || "Eymen", btn);
+});
 bootCloud();
 </script>
 </body>
