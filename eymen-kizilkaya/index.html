@@ -115,6 +115,10 @@
   .top .avatar-change { color: #fff; }
   #maclar > .sec { color: #e07a32; font-size: 26px; margin: 8px 0 12px; }
   #antrenman > .sec { color: #e2c04a; font-size: 26px; margin: 18px 0 12px; }
+  #aSumBox .ablock { border-radius: 14px; padding: 14px 16px; margin-top: 8px; }
+  #aSumBox .aname { font-size: 18px; font-weight: 750; }
+  #aSumBox .anum { font-size: 16px; margin-top: 4px; }
+  #antTabs button.on { outline: 3px solid #fff6d2; }
   .stat-stack { display: flex; flex-direction: column; gap: 8px; margin: 0 0 14px; }
   .stat-stack button { width: 100%; font-size: 18px; padding: 16px; border-radius: 14px; }
   #maclar #macTabs button { background: #e07a32; color: #fff; }
@@ -255,6 +259,10 @@
 
   <section id="antrenman">
     <h2 class="sec">Antrenman</h2>
+    <div class="stat-stack" id="antTabs">
+      <button type="button" id="tabAntGir">Antrenman Gir</button>
+      <button type="button" id="tabAntStat">Antrenman İstatistikleri</button>
+    </div>
     <div class="panel" id="aForm">
       <h2>Antrenman Gir</h2>
       <div class="formgrid">
@@ -270,7 +278,8 @@
         <button class="ghost" id="aClear">Temizle</button>
       </div>
     </div>
-    <div class="panel"><h2>Bu Sezonun Antrenmanları</h2><div id="aTable"></div></div>
+    <div class="panel" id="aList"><h2>Bu Sezonun Antrenmanları</h2><div id="aTable"></div></div>
+    <div class="panel hidden" id="aSum"><div id="aSumBox"></div></div>
   </section>
 </div>
 <script>
@@ -441,7 +450,7 @@ document.getElementById("saveProfile").onclick = () => {
 };
 function openView(name) {
   document.body.className = name ? "view-" + name : "view-home";
-  if (name === "antrenman") renderA();
+  if (name === "antrenman") { renderA(); showAnt("gir"); }
   window.scrollTo(0, 0);
 }
 document.getElementById("homeDoors").onclick = (e) => {
@@ -664,6 +673,25 @@ function drawBars(id, vals, labels) {
     ctx.fillText(String(labels[i] || "").slice(0, 12), x, h - 10);
   });
 }
+function showAnt(which) {
+  show("aForm", which === "gir");
+  show("aList", which === "gir");
+  show("aSum", which === "stat");
+  document.getElementById("tabAntGir").classList.toggle("on", which === "gir");
+  document.getElementById("tabAntStat").classList.toggle("on", which === "stat");
+  if (which === "stat") renderAntSection();
+}
+document.getElementById("tabAntGir").onclick = () => showAnt("gir");
+document.getElementById("tabAntStat").onclick = () => showAnt("stat");
+function renderAntSection() {
+  const trains = cur().trainings || [];
+  const names = ["Takım Antrenmanı", "Bireysel Antrenman", "Atletik Performans Antrenmanı", "Ev Antrenmanı"];
+  document.getElementById("aSumBox").innerHTML = TYPES.map((type, i) => {
+    const xs = trains.filter(t => t.type === type);
+    const mins = xs.reduce((s, x) => s + n(x.min), 0);
+    return `<div class="ablock" style="background:${TONES[i][0]};color:${TONES[i][1]}"><div class="aname">${names[i]}</div><div class="anum">${xs.length} antrenman ${mins} dakika</div></div>`;
+  }).join("");
+}
 function renderA() {
   renderTypes();
   const rows = cur().trainings.filter(t => t.type === aFilter).sort((a, b) => (b.date || "").localeCompare(a.date || ""));
@@ -675,6 +703,7 @@ function renderA() {
     ? "<table><thead><tr><th>Tarih</th><th>Tür</th><th>Dakika</th><th>Not</th><th></th></tr></thead><tbody>" + body + "</tbody></table>"
     : "<p class=\"note\">" + esc(state.active) + " / " + esc(aFilter) + " kaydı yok.</p>";
   if (!document.getElementById("aStats").classList.contains("hidden")) renderTrainStats();
+  if (!document.getElementById("aSum").classList.contains("hidden")) renderAntSection();
 }
 document.getElementById("aTable").onclick = (e) => {
   const ed = e.target.closest("[data-aedit]");
