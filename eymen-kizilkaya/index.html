@@ -6,17 +6,19 @@
 <title>Eymen Kızılkaya</title>
 <style>
   :root {
-    --bg: #07110c; --panel: rgba(18, 36, 28, .42); --panel2: rgba(255, 255, 255, .08);
-    --line: rgba(255, 255, 255, .22);
-    --text: #f4fff8; --muted: #c5ddd0; --green: #5ef0b0; --green2: rgba(32, 140, 90, .72); --gold: #f0d48a;
+    --panel: rgba(255, 255, 255, .16);
+    --panel2: rgba(255, 255, 255, .12);
+    --line: rgba(255, 255, 255, .45);
+    --text: #f7fff9; --muted: #e7fff2; --green: #b8ffd8; --green2: rgba(12, 110, 68, .55); --gold: #fff1b8;
   }
   * { box-sizing: border-box; }
   body {
     margin: 0; min-height: 100vh; font-family: "Segoe UI", system-ui, sans-serif; color: var(--text);
     background:
-      radial-gradient(900px 480px at 8% -10%, rgba(80, 190, 130, .45), transparent 60%),
-      radial-gradient(700px 420px at 100% 0%, rgba(40, 90, 70, .55), transparent 55%),
-      linear-gradient(165deg, #123226 0%, #07140f 45%, #0c2418 100%);
+      radial-gradient(circle at 15% 10%, rgba(255,255,255,.55), transparent 28%),
+      radial-gradient(circle at 85% 0%, rgba(180,255,210,.7), transparent 32%),
+      radial-gradient(circle at 70% 80%, rgba(20,90,50,.45), transparent 40%),
+      linear-gradient(160deg, #7dffb2 0%, #1f8a52 38%, #0c4a2c 100%);
     background-attachment: fixed;
   }
   header { padding: 20px 22px 6px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: end; }
@@ -32,23 +34,23 @@
   .tabs button, button.ghost { background: rgba(255,255,255,.06); border: 1px solid var(--line); font-weight: 550; backdrop-filter: blur(8px); }
   .tabs button.on, .types button.on { background: var(--green2); border-color: transparent; font-weight: 650; }
   button, input, select { font: inherit; color: var(--text); background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; backdrop-filter: blur(10px); }
-  select option { background: #163026; color: var(--text); }
+  select option { background: #1c6b40; color: #fff; }
   button { cursor: pointer; background: var(--green2); border-color: transparent; font-weight: 650; }
   button.warn { background: rgba(140, 48, 48, .72); }
   label { display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: var(--muted); }
-  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin-bottom: 14px; backdrop-filter: blur(16px); box-shadow: 0 10px 30px rgba(0,0,0,.18); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin-bottom: 14px; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); box-shadow: inset 0 1px 0 rgba(255,255,255,.35); }
   h2 { margin: 0 0 12px; font-size: 16px; }
   .formgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
   .actions { margin-top: 12px; }
   .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
-  .card { background: rgba(255,255,255,.07); border: 1px solid var(--line); border-radius: 12px; padding: 12px; backdrop-filter: blur(12px); }
+  .card { background: rgba(255,255,255,.14); border: 1px solid var(--line); border-radius: 12px; padding: 12px; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
   .card .k { color: var(--muted); font-size: 12px; } .card .v { font-size: 24px; font-weight: 720; margin-top: 3px; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
   th { color: var(--muted); font-weight: 600; }
   .hidden { display: none; } .note { color: var(--muted); font-size: 12px; }
   .types { margin-bottom: 12px; }
-  canvas { width: 100%; height: 240px; background: rgba(0,0,0,.15); border-radius: 12px; display: block; }
+  canvas { width: 100%; height: 240px; background: rgba(255,255,255,.12); border-radius: 12px; display: block; }
   .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   @media (max-width: 800px) { .row2 { grid-template-columns: 1fr; } }
   .pill { font-size: 11px; padding: 2px 7px; border-radius: 99px; background: rgba(255,255,255,.12); color: var(--gold); }
@@ -442,7 +444,7 @@ function drawBars(id, vals, labels) {
   const ctx = c.getContext("2d");
   const w = c.width, h = c.height;
   ctx.clearRect(0, 0, w, h);
-  if (!vals.length) { ctx.fillStyle = "#93a89b"; ctx.font = "14px Segoe UI"; ctx.fillText("Veri yok", 20, 40); return; }
+  if (!vals.length) { ctx.fillStyle = "#f4fff8"; ctx.font = "14px Segoe UI"; ctx.fillText("Veri yok", 20, 40); return; }
   const max = Math.max(1, ...vals);
   const pad = 36;
   const bw = Math.min(70, (w - pad - 10) / vals.length - 12);
@@ -453,7 +455,7 @@ function drawBars(id, vals, labels) {
     ctx.fillRect(x, h - 28 - bh, bw, bh);
     ctx.fillStyle = "#e9f3ec"; ctx.font = "12px Segoe UI";
     ctx.fillText(String(v), x, h - 32 - bh);
-    ctx.fillStyle = "#93a89b";
+    ctx.fillStyle = "#f4fff8";
     ctx.fillText(String(labels[i] || "").slice(0, 12), x, h - 10);
   });
 }
