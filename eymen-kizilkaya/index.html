@@ -151,7 +151,6 @@
     <button type="button" id="goSeasons" data-open="seasons">Sezonlar</button>
     <button type="button" id="goMac" data-open="maclar">Maçlar</button>
     <button type="button" id="goAnt" data-open="antrenman">Antrenman</button>
-    <button type="button" id="goBackup" data-open="backup">Kaydedilmiş Veriler</button>
   </div>
 </div>
 <div class="wrap">
@@ -244,15 +243,6 @@
     </div>
     <div class="panel"><h2>Bu Sezonun antrenmanları</h2><div id="aTable"></div></div>
   </section>
-
-  <div class="panel" id="backup">
-    <h2>Kaydedilmiş Verileri Al</h2>
-    <p class="note">Kayıtlı dosyayı buradan indirir veya geri yüklersin. Sezonlar, maçlar ve antrenmanlar bu dosyadadır.</p>
-    <div class="actions">
-      <button class="ghost" id="export">Yedek İndir</button>
-      <label>Yedek Yükle <input type="file" id="import" accept="application/json"></label>
-    </div>
-  </div>
 </div>
 <script>
 const KEY = "eymen-kaleci-v2";
@@ -583,25 +573,6 @@ document.getElementById("aTable").onclick = (e) => {
     cur().trainings = cur().trainings.filter(x => x.id !== del.dataset.adel);
     save(); refresh();
   }
-};
-
-document.getElementById("export").onclick = () => {
-  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "eymen-istatistik.json";
-  a.click();
-};
-document.getElementById("import").onchange = async (e) => {
-  const f = e.target.files[0];
-  if (!f) return;
-  const data = JSON.parse(await f.text());
-  if (data ? (data.seasons ? data.active : data.seasons) : data) state = data;
-  else if (data ? Array.isArray(data.matches) : data) {
-    const name = data.season || defaultSeasonName();
-    state = { team: data.team || "", active: name, seasons: { [name]: { matches: data.matches, trainings: data.trainings || [] } } };
-  } else { alert("Bu Yedek dosyası değil."); return; }
-  save(); refresh();
 };
 
 function refresh() {
