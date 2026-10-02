@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eymen Kızılkaya</title>
+<style>
+  :root {
+    --panel: rgba(8, 14, 12, .28);
+    --panel2: rgba(8, 14, 12, .35);
+    --line: rgba(255, 255, 255, .28);
+    --text: #f6fff9; --muted: #d5ebe0; --green: #d8ffe8; --green2: rgba(8, 18, 14, .4); --gold: #ffe7a3;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; font-family: "Segoe UI", system-ui, sans-serif; color: var(--text);
+    background: #121212;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: url("umraniye-arma.png") center / cover no-repeat;
+    opacity: .55;
+    pointer-events: none;
+    z-index: 0;
+  }
+  body > * { position: relative; z-index: 1; }
+  header { padding: 20px 22px 6px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: end; }
+  .who { display: flex; gap: 14px; align-items: center; }
+  .avatar { width: 76px; height: 76px; border-radius: 50%; object-fit: cover; object-position: center 18%; border: 2px solid var(--green); background: transparent; }
+  .avatar-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .avatar-change { font-size: 11px; color: var(--muted); cursor: pointer; text-align: center; }
+  .avatar-change input { display: none; }
+  .sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 12px 22px 48px; }
+  .tabs, .actions, .types { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .tabs { margin: 14px 0; }
+  .tabs button, button.ghost { background: rgba(255,255,255,.06); border: 1px solid var(--line); font-weight: 550; backdrop-filter: blur(8px); }
+  .tabs button.on, .types button.on { background: var(--green2); border-color: transparent; font-weight: 650; }
+  button, input, select { font: inherit; color: var(--text); background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; backdrop-filter: blur(10px); }
+  select option { background: #102018; color: #fff; }
+  button { cursor: pointer; background: var(--green2); border-color: transparent; font-weight: 650; }
+  button.warn { background: rgba(140, 48, 48, .72); }
+  label { display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: var(--muted); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin-bottom: 14px; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); box-shadow: inset 0 1px 0 rgba(255,255,255,.35); }
+  h2 { margin: 0 0 12px; font-size: 16px; }
+  .formgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .actions { margin-top: 12px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+  .card { background: rgba(255,255,255,.14); border: 1px solid var(--line); border-radius: 12px; padding: 12px; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+  .card .k { color: var(--muted); font-size: 12px; } .card .v { font-size: 24px; font-weight: 720; margin-top: 3px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; }
+  .hidden { display: none; } .note { color: var(--muted); font-size: 12px; }
+  .types { margin-bottom: 12px; }
+  canvas { width: 100%; height: 240px; background: rgba(255,255,255,.12); border-radius: 12px; display: block; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 800px) { .row2 { grid-template-columns: 1fr; } }
+  .pill { font-size: 11px; padding: 2px 7px; border-radius: 99px; background: rgba(255,255,255,.12); color: var(--gold); }
+  .years { display: flex; gap: 8px; flex-wrap: wrap; }
+  .years button.on { outline: 2px solid var(--green); }
+  body.view-home header, body.view-home .wrap { display: none; }
+  body:not(.view-home) #home { display: none; }
+  #home { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 28px 16px 48px; text-align: center; }
+  #home h1 { margin: 0; font-size: 36px; text-shadow: 0 2px 14px rgba(0,0,0,.5); }
+  .hero { display: block; width: min(260px, 72vw); height: min(340px, 46vh); margin: 8px auto 0; object-fit: cover; object-position: center 18%; border-radius: 22px; border: 8px solid #fff; box-shadow: 0 18px 40px rgba(0,0,0,.4); background: #fff; }
+  #home .avatar-change { color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.6); }
+  .doors { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: min(520px, 92vw); margin-top: 8px; }
+  .doors button { font-size: 22px; padding: 26px 10px; border-radius: 18px; }
+  #goMac { background: #e07a32; color: #fff; }
+  #goAnt { background: #e2c04a; color: #2c2410; }
+  #homeStatsBtn { width: min(520px, 92vw); background: rgba(224, 122, 50, .9); color: #fff; font-size: 18px; padding: 16px; border-radius: 16px; }
+  #homeOpen { width: min(640px, 94vw); display: flex; flex-direction: column; gap: 8px; }
+  #homeOpen .card { text-align: left; background: rgba(255, 236, 220, .9); color: #3a2416; }
+  #homeOpen .k, #homeOpen .note { color: #6a4e3c; }
+  #homeOpen .v { color: #3a2416; }
+  #goHome { margin-bottom: 10px; background: rgba(255,255,255,.16); color: #fff; }
+  .wrap > .panel { background: rgba(228, 228, 226, .88); color: #2b2b2b; border-color: rgba(80, 80, 80, .25); }
+  .wrap > .panel h2, .wrap > .panel .note, .wrap > .panel label { color: #3a3a3a; }
+  .wrap > .panel button { color: #2b2b2b; background: rgba(255,255,255,.75); }
+  .tabs button { color: #fff; min-width: 140px; }
+  #tabM { background: rgba(120, 72, 40, .45); border-color: #e07a32; }
+  #tabA { background: rgba(90, 80, 30, .45); border-color: #e2c04a; }
+  #tabM.on { background: #e07a32; color: #fff; border-color: #ffd2ad; }
+  #tabA.on { background: #e2c04a; color: #2c2410; border-color: #fff4c2; }
+  #maclar .panel { background: rgba(236, 214, 196, .9); border-color: rgba(196, 98, 32, .55); color: #3a2416; }
+  #maclar h2, #maclar label, #maclar .note, #maclar th { color: #5c4638; }
+  #maclar .card { background: rgba(255, 244, 232, .75); }
+  #maclar .card .v, #maclar td { color: #3a2416; }
+  #maclar input, #maclar select, #maclar button.ghost { color: #3a2416; background: rgba(255, 248, 240, .85); border-color: rgba(160, 90, 40, .35); }
+  #maclar button:not(.ghost):not(.warn):not(.pdf-btn) { background: #e07a32; color: #fff; }
+  #antrenman .panel { background: rgba(236, 224, 160, .9); border-color: rgba(170, 140, 30, .55); color: #3a3414; }
+  #antrenman h2, #antrenman label, #antrenman .note, #antrenman th { color: #5c5428; }
+  #antrenman .card { background: rgba(255, 248, 210, .75); }
+  #antrenman .card .v, #antrenman td { color: #3a3414; }
+  #antrenman input, #antrenman select, #antrenman textarea, #antrenman button.ghost { color: #3a3414; background: rgba(255, 252, 230, .88); border-color: rgba(140, 120, 30, .35); }
+  #antrenman textarea { width: 100%; min-height: 110px; resize: vertical; }
+  #antrenman button:not(.ghost):not(.warn):not(.tone):not(.pdf-btn) { background: #d4a017; color: #2c2410; }
+  #typeBtns button.tone { border: none; }
+  #typeBtns button.t0 { background: #6b4f08; color: #fff4c8; }
+  #typeBtns button.t1 { background: #242424; color: #f4f4f4; }
+  #typeBtns button.t2 { background: #c6a318; color: #1c1604; }
+  #typeBtns button.t3 { background: #4d4d4d; color: #ffe7a0; }
+  #typeBtns { flex-direction: column; align-items: stretch; }
+  #aCards { grid-template-columns: 1fr; }
+  #typeBtns button { width: 100%; text-align: left; font-size: 16px; padding: 14px 16px; border-radius: 12px; }
+  #typeBtns button.on { outline: 3px solid #fff6d2; }
+  canvas { background: rgba(255, 255, 255, .45); }
+  .top { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 28px 16px 8px; }
+  .crest { width: 92px; height: 92px; object-fit: contain; filter: drop-shadow(0 8px 16px rgba(0,0,0,.35)); }
+  .top h1 { margin: 8px 0 0; font-size: 34px; text-shadow: 0 2px 12px rgba(0,0,0,.45); }
+  .top .sub { text-shadow: 0 1px 8px rgba(0,0,0,.55); }
+  #cloud { font-size: 12px; color: #ffe9a3; min-height: 16px; margin-top: 4px; text-shadow: 0 1px 6px rgba(0,0,0,.65); }
+  .pdf-btn { display: block; width: 100%; margin-top: 12px; background: #1f6b4a; color: #fff; font-size: 17px; padding: 14px; border-radius: 14px; }
+  .pdf-btn.hidden { display: none; }
+  #pdfReport { position: fixed; left: -2600px; top: 0; width: 820px; background: #f6f1ea; color: #1c140e; font-family: "Segoe UI", sans-serif; }
+  #pdfReport .pdf-chunk { width: 820px; }
+  #pdfReport .pdf-head { display: flex; gap: 16px; align-items: center; background: #1c140e; color: #fff; padding: 22px 24px; }
+  #pdfReport .crest { width: 58px; height: 58px; object-fit: contain; }
+  #pdfReport .ava { width: 74px; height: 74px; border-radius: 50%; object-fit: cover; border: 3px solid #e07a32; }
+  #pdfReport .pdf-kicker { color: #f3d27a; letter-spacing: .16em; font-size: 11px; font-weight: 700; }
+  #pdfReport h1 { margin: 2px 0; font-size: 30px; color: #fff; }
+  #pdfReport .pdf-sub { color: #f0e6d6; font-size: 14px; }
+  #pdfReport .pdf-body { padding: 18px 22px 28px; }
+  #pdfReport .pdf-sec { margin: 18px 0 8px; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; font-weight: 750; color: #1c140e; border-left: 4px solid #e07a32; padding-left: 8px; }
+  #pdfReport .pdf-kpis, #pdfReport .pdf-cards { display: flex; flex-wrap: wrap; gap: 8px; }
+  #pdfReport .pdf-kpi, #pdfReport .pdf-card { background: #fff; border-radius: 10px; padding: 10px 8px; text-align: center; box-sizing: border-box; }
+  #pdfReport .pdf-kpi { width: calc(16.66% - 7px); }
+  #pdfReport .pdf-card { width: calc(33.33% - 6px); text-align: left; padding: 12px 14px; }
+  #pdfReport .pdf-kpi b, #pdfReport .pdf-card b { display: block; font-size: 22px; color: #c45a16; }
+  #pdfReport .pdf-kpi span, #pdfReport .pdf-card span { font-size: 11px; color: #6d5d4e; }
+  #pdfReport table.pdf { width: 100%; border-collapse: collapse; table-layout: fixed; background: #fff; font-size: 12px; margin: 0; }
+  #pdfReport table.pdf th { background: #2a211b; color: #f6efe4; text-align: left; padding: 8px 6px; }
+  #pdfReport table.pdf td { padding: 7px 6px; border-bottom: 1px solid #efe7dc; color: #1c140e; }
+  #pdfReport .pdf-win { color: #1b7a43; font-weight: 750; }
+  #pdfReport .pdf-draw { color: #8a6a10; font-weight: 750; }
+  #pdfReport .pdf-loss { color: #a33b2b; font-weight: 750; }
+  #pdfReport .pdf-type { display: flex; justify-content: space-between; align-items: center; border-radius: 10px; padding: 11px 14px; margin-top: 6px; font-size: 14px; font-weight: 700; }
+  #pdfReport .pdf-foot { margin-top: 16px; text-align: right; font-size: 11px; color: #8a7b6c; }
+  #maclar > .sec { color: #e07a32; font-size: 26px; margin: 8px 0 12px; }
+  #antrenman > .sec { color: #e2c04a; font-size: 26px; margin: 18px 0 12px; }
+  #aSumBox .ablock { border-radius: 14px; padding: 14px 16px; margin-top: 8px; }
+  #aSumBox .aname { font-size: 18px; font-weight: 750; }
+  #aSumBox .anum { font-size: 16px; margin-top: 4px; }
+  #antTabs button.on { outline: 3px solid #fff6d2; }
+  .stat-stack { display: flex; flex-direction: column; gap: 8px; margin: 0 0 14px; }
+  .stat-stack button { width: 100%; font-size: 18px; padding: 16px; border-radius: 14px; }
+  #maclar #macTabs button { background: #e07a32; color: #fff; }
+  #maclar #macTabs button.on { outline: 3px solid #fff3e4; }
+  #maclar #mTable button.match-row { display: block; width: 100%; text-align: left; background: rgba(255, 244, 232, .95); color: #3a2416; font-size: 17px; padding: 14px 16px; border-radius: 14px; margin-top: 8px; }
+  #mList .detail, #mStats .line, #mEymen .line { background: rgba(255,255,255,.78); color: #2b2418; border-radius: 12px; padding: 12px 14px; margin-top: 8px; font-size: 18px; font-weight: 650; }
+  #mList .detail .actions { margin-top: 8px; }
+  #maclar #aStats { background: rgba(236, 224, 160, .92); border-color: rgba(170, 140, 30, .55); color: #3a3414; }
+  #maclar #aStats h2, #maclar #aStats label, #maclar #aStats .note, #maclar #aStats th, #maclar #aStats .k { color: #5c5428; }
+  #maclar #aStats .v, #maclar #aStats td { color: #3a3414; }
+  #maclar #aStats input, #maclar #aStats select { color: #3a3414; background: rgba(255, 252, 230, .88); }
+  .doors { display: none; }
+  body.view-home .doors { display: flex; flex-direction: column; gap: 10px; width: min(420px, 88vw); margin-top: 18px; }
+  body.view-home .sub { display: none; }
+  body.view-home .wrap { display: none; }
+  .doors button { width: 100%; font-size: 22px; padding: 18px; border-radius: 16px; }
+  #goSeasons { background: #4a4742; color: #ffe9a3; }
+  #goMac { background: #e07a32; color: #fff; }
+  #goAnt { background: #a68412; color: #241c08; }
+  #teamStatBtn { background: #e07a32; color: #fff; }
+  #eymenStatBtn { background: #2a2a2a; color: #ffe7a0; }
+  #antStatBtn { background: #3a3a3a; color: #ffe14a; }
+  #antStatBox .line { display: flex; justify-content: space-between; align-items: center; gap: 12px; border-radius: 12px; padding: 12px 14px; margin-top: 8px; font-size: 18px; font-weight: 650; }
+  #teamStatBox .line, #eymenStatBox .line { background: rgba(255,255,255,.72); color: #2b2418; border-radius: 12px; padding: 12px 14px; margin-top: 8px; font-size: 18px; font-weight: 650; }
+  #maclar, #antrenman { display: none; }
+  body.view-seasons #seasons, body.view-maclar #maclar, body.view-antrenman #antrenman { display: block; }
+  #goHome { display: none; margin-bottom: 12px; background: rgba(255,255,255,.18); color: #fff; }
+  body.view-seasons #goHome, body.view-maclar #goHome, body.view-antrenman #goHome { display: inline-block; }
+  body:not(.view-seasons) #seasons { display: none; }
+  body:not(.view-backup) #backup { display: none; }
+</style>
+</head>
+<body class="view-home">
+<div class="top">
+  <img class="hero" id="avatar" src="eymen-foto.jpg" alt="Eymen Kızılkaya">
+  <label class="avatar-change">Fotoğrafı Değiştir
+    <input type="file" id="avatarFile" accept="image/*">
+  </label>
+  <h1>Eymen Kızılkaya</h1>
+  <div id="cloud"></div>
+  <div class="sub" id="subline">Her Sezon ayrı durur. Yeni Sezon sıfırdan başlar, eski yıl silinmez.</div>
+  <div class="doors" id="homeDoors">
+    <button type="button" id="goSeasons" data-open="seasons">Sezonlar</button>
+    <button type="button" id="goMac" data-open="maclar">Maçlar</button>
+    <button type="button" id="goAnt" data-open="antrenman">Antrenman</button>
+  </div>
+</div>
+<div class="wrap">
+  <button type="button" id="goHome">Ana Ekran</button>
+  <div class="panel" id="seasons">
+    <h2>Sezonlar</h2>
+    <div class="years" id="yearCards"></div>
+    <p class="note">Bir Yıla basınca o sezonun istatistiği açılır.</p>
+    <div id="seasonStats" class="hidden">
+      <h2 id="seasonStatsTitle">Sezon İstatistiği</h2>
+      <div class="stat-stack">
+        <button type="button" id="teamStatBtn">Takım İstatistiği</button>
+        <button type="button" id="eymenStatBtn">Bireysel İstatistik</button>
+        <button type="button" id="antStatBtn">Antrenman İstatistiği</button>
+      </div>
+      <div id="teamStatBox" class="hidden"></div>
+      <button type="button" class="pdf-btn hidden" id="pdfTeam" data-ids="teamStatBox" data-title="Eymen Takım İstatistiği">PDF Paylaş</button>
+      <div id="eymenStatBox" class="hidden"></div>
+      <button type="button" class="pdf-btn hidden" id="pdfEymen" data-ids="eymenStatBox" data-title="Eymen Bireysel İstatistik">PDF Paylaş</button>
+      <div id="antStatBox" class="hidden"></div>
+      <button type="button" class="pdf-btn hidden" id="pdfAnt" data-ids="antStatBox" data-title="Eymen Antrenman İstatistiği">PDF Paylaş</button>
+    </div>
+    <div class="actions">
+      <label>Takım <input id="team" placeholder="Takım Adı"></label>
+      <label>Sezon <select id="season"></select></label>
+      <button class="ghost" id="newSeason">Yeni Sezon başlat</button>
+      <button class="ghost" id="saveProfile">Takımı Kaydet</button>
+    </div>
+  </div>
+
+  <section id="maclar">
+    <h2 class="sec">Maçlar</h2>
+    <div class="stat-stack" id="macTabs">
+      <button type="button" id="tabMacGir">Maç Gir</button>
+      <button type="button" id="tabMacList">Bu Sezonun Maçları</button>
+      <button type="button" id="mStatsBtn">Maç İstatistiği</button>
+      <button type="button" id="tabMacEymen">Bireysel İstatistik</button>
+    </div>
+    <div class="panel hidden" id="mForm">
+      <h2 id="mTitle">Maç Girişi</h2>
+      <div class="formgrid">
+        <label>Tarih <input type="date" id="mDate"></label>
+        <label>Bizim Takım <input id="mTeam" placeholder="Takım Adı"></label>
+        <label>Rakip Takım <input id="mOpp" placeholder="Rakip"></label>
+        <label>Maç Çeşidi
+          <select id="mType"><option>Hazırlık</option><option>Turnuva</option><option>TFF maçı</option></select>
+        </label>
+        <label>Skor <input id="mScore" placeholder="2-1"></label>
+        <label>Sonuç
+          <select id="mResult"><option>Galibiyet</option><option>Beraberlik</option><option>Mağlubiyet</option></select>
+        </label>
+        <label>Eymen Oynadı mı?
+          <select id="mPlayed"><option value="evet">Evet</option><option value="hayir">Hayır</option></select>
+        </label>
+        <label>Dakika <input type="number" id="mMin" min="0" value="0"></label>
+        <label>Attığı Gol <input type="number" id="mGoals" min="0" value="0"></label>
+        <label>Yediği Gol <input type="number" id="mGA" min="0" value="0"></label>
+        <label>Asist <input type="number" id="mAst" min="0" value="0"></label>
+        <label>Kurtarış <input type="number" id="mSaves" min="0" value="0"></label>
+      </div>
+      <div class="actions">
+        <button id="mSave">Maçı Kaydet</button>
+        <button class="ghost" id="mClear">Temizle</button>
+      </div>
+      <button type="button" class="pdf-btn" data-ids="mForm" data-title="Eymen Maç Girişi">PDF Paylaş</button>
+    </div>
+    <div class="panel hidden" id="mList">
+      <h2>Bu Sezonun Maçları</h2>
+      <button type="button" class="pdf-btn" data-ids="mList" data-title="Eymen Bu Sezonun Maçları">PDF Paylaş</button>
+      <div id="mTable"></div>
+    </div>
+    <div class="panel hidden" id="mStats">
+      <h2 id="mStatsTitle">Maç İstatistiği</h2>
+      <button type="button" class="pdf-btn" data-ids="mStats" data-title="Eymen Maç İstatistiği">PDF Paylaş</button>
+      <div id="mCards"></div>
+    </div>
+    <div class="panel hidden" id="mEymen">
+      <h2>Bireysel İstatistik</h2>
+      <button type="button" class="pdf-btn" data-ids="mEymen" data-title="Eymen Bireysel İstatistik">PDF Paylaş</button>
+      <div id="mEymenBox"></div>
+    </div>
+    <div class="panel hidden" id="aStats">
+      <h2>Antrenman Toplamı</h2>
+      <div class="actions"><label>Ay <input type="month" id="aMonth"></label></div>
+      <div class="cards" id="aCards" style="margin-top:12px"></div>
+      <div class="row2" style="margin-top:12px">
+        <div>
+          <h2>Bu Ay, türlere göre dakika</h2>
+          <canvas id="chartMonth" width="640" height="280"></canvas>
+        </div>
+        <div>
+          <h2>Bu Sezonda aylar kıyası</h2>
+          <label>Kıyaslanan Tür <select id="cmpType"></select></label>
+          <canvas id="chartCmp" width="640" height="280" style="margin-top:10px"></canvas>
+        </div>
+      </div>
+      <h2 style="margin-top:16px">Yıllar Arası antrenman dakikası</h2>
+      <canvas id="chartYears" width="640" height="280"></canvas>
+    </div>
+  </section>
+
+  <section id="antrenman">
+    <h2 class="sec">Antrenman</h2>
+    <div class="stat-stack" id="antTabs">
+      <button type="button" id="tabAntGir">Antrenman Gir</button>
+      <button type="button" id="tabAntStat">Antrenman İstatistikleri</button>
+    </div>
+    <div class="panel" id="aForm">
+      <h2>Antrenman Gir</h2>
+      <div class="formgrid">
+        <label>Hangi Antrenman
+          <select id="aType"></select>
+        </label>
+        <label>Tarih <input type="date" id="aDate"></label>
+        <label>Süre (dakika) <input type="number" id="aMin" min="1" value="60"></label>
+      </div>
+      <label>Neler Yapıldı <textarea id="aNote" placeholder="Ne çalışıldı"></textarea></label>
+      <div class="actions">
+        <button id="aSave">Antrenmanı Kaydet</button>
+        <button class="ghost" id="aClear">Temizle</button>
+      </div>
+      <button type="button" class="pdf-btn" data-ids="aForm,aList" data-title="Eymen Antrenman Girişi">PDF Paylaş</button>
+    </div>
+    <div class="panel" id="aList"><h2>Bu Sezonun Antrenmanları</h2><div id="aTable"></div></div>
+    <div class="panel hidden" id="aSum">
+      <button type="button" class="pdf-btn" data-ids="aSum" data-title="Eymen Antrenman İstatistikleri">PDF Paylaş</button>
+      <div id="aSumBox"></div>
+    </div>
+  </section>
+</div>
+<script>
+const KEY = "eymen-kaleci-v2";
+const OLD = "eymen-kaleci-v1";
+const TYPES = ["Takım antrenmanı", "Bireysel antrenman", "Atletik performans antrenmanı", "Ev antrenmanı"];
+const TYPE_LABELS = ["Takım Antrenmanı", "Bireysel Antrenman", "Atletik Performans", "Ev Antrenmanı"];
+const TONES = [
+  ["#6b4f08", "#fff4c8"],
+  ["#242424", "#f4f4f4"],
+  ["#c6a318", "#1c1604"],
+  ["#4d4d4d", "#ffe7a0"]
+];
+let state = load();
+let mEdit = null, openMatch = null, aEdit = null, aFilter = TYPES[0];
+
+function blankSeason() { return { matches: [], trainings: [] }; }
+function defaultSeasonName() {
+  const y = new Date().getFullYear();
+  const m = new Date().getMonth();
+  return m >= 6 ? y + "-" + String(y + 1).slice(2) : (y - 1) + "-" + String(y).slice(2);
+}
+function load() {
+  try {
+    const s = JSON.parse(localStorage.getItem(KEY));
+    if (s ? (s.seasons ? s.active : s.seasons) : s) return s;
+  } catch {}
+  let old = null;
+  try { old = JSON.parse(localStorage.getItem(OLD)); } catch {}
+  const name = (old ? old.season : old) || defaultSeasonName();
+  const seasons = {};
+  seasons[name] = {
+    matches: (old ? old.matches : old) || [],
+    trainings: (old ? old.trainings : old) || []
+  };
+  return { team: (old ? old.team : old) || "", active: name, seasons };
+}
+function save() {
+  state.updatedAt = Date.now();
+  localStorage.setItem(KEY, JSON.stringify(state));
+  if (booting) pendingPush = true;
+  else queueCloud();
+}
+const TOPIC = "https://ntfy.sh/eymen-kizilkaya-n4dch4-store-9f3a";
+let booting = true, pendingPush = false, cloudTimer = null;
+function markCloud(t) {
+  const el = document.getElementById("cloud");
+  if (el) el.textContent = t;
+}
+function countData(s) {
+  if (!s || !s.seasons) return 0;
+  let total = 0;
+  Object.keys(s.seasons).forEach(name => {
+    const sec = s.seasons[name] || {};
+    total += (sec.matches || []).length + (sec.trainings || []).length;
+  });
+  return total;
+}
+function unionRows(older, newer) {
+  const map = new Map();
+  (older || []).forEach(x => { if (x && x.id) map.set(x.id, x); });
+  (newer || []).forEach(x => { if (x && x.id) map.set(x.id, x); });
+  return [...map.values()];
+}
+function mergeStates(local, remote) {
+  const newer = (remote.updatedAt || 0) >= (local.updatedAt || 0) ? remote : local;
+  const older = newer === remote ? local : remote;
+  const names = new Set([...Object.keys(local.seasons || {}), ...Object.keys(remote.seasons || {})]);
+  const seasons = {};
+  names.forEach(name => {
+    const o = (older.seasons || {})[name] || {};
+    const n = (newer.seasons || {})[name] || {};
+    seasons[name] = {
+      matches: unionRows(o.matches, n.matches),
+      trainings: unionRows(o.trainings, n.trainings)
+    };
+  });
+  return {
+    team: newer.team || older.team || "",
+    active: newer.active || older.active || defaultSeasonName(),
+    seasons,
+    updatedAt: Date.now()
+  };
+}
+function absorb(local, remote) {
+  if (!remote || !remote.seasons) return local;
+  if (countData(remote) === 0) return local;
+  if (countData(local) === 0) return remote;
+  if (!local.updatedAt) return mergeStates(local, remote);
+  if ((remote.updatedAt || 0) >= (local.updatedAt || 0)) return remote;
+  return local;
+}
+function queueCloud() {
+  clearTimeout(cloudTimer);
+  cloudTimer = setTimeout(pushCloud, 400);
+}
+function cloudBody() {
+  return {
+    team: state.team || "",
+    active: state.active || "",
+    seasons: state.seasons || {},
+    updatedAt: state.updatedAt || Date.now()
+  };
+}
+function newestState(a, b) {
+  if (a && b) return (b.updatedAt || 0) >= (a.updatedAt || 0) ? b : a;
+  return a || b || null;
+}
+async function pushCloud() {
+  const text = JSON.stringify(cloudBody());
+  const size = 3000;
+  const parts = [];
+  for (let i = 0; i < text.length; i += size) parts.push(text.slice(i, i + size));
+  const stamp = String(Date.now());
+  markCloud("Sunucuya yazılıyor");
+  try {
+    for (let i = 0; i < parts.length; i++) {
+      const r = await fetch(TOPIC, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: stamp + " " + (i + 1) + "/" + parts.length + "\n" + parts[i]
+      });
+      if (!r.ok) throw new Error("post");
+    }
+    markCloud("Sunucuda");
+  } catch (e) {
+    markCloud("Sunucuya yazılamadı, telefonda duruyor");
+  }
+}
+function stateFromNtfy(text) {
+  const groups = new Map();
+  text.split("\n").forEach(line => {
+    if (!line.trim()) return;
+    let ev;
+    try { ev = JSON.parse(line); } catch (e) { return; }
+    if (!ev || ev.event !== "message" || !ev.message || ev.attachment) return;
+    const nl = ev.message.indexOf("\n");
+    if (nl < 1) return;
+    const head = ev.message.slice(0, nl).split(" ");
+    if (head.length < 2 || head[1].indexOf("/") < 0) return;
+    const frac = head[1].split("/");
+    const idx = Number(frac[0]), of = Number(frac[1]);
+    if (!idx || !of) return;
+    if (!groups.has(head[0])) groups.set(head[0], { of: of, parts: [] });
+    groups.get(head[0]).parts[idx - 1] = ev.message.slice(nl + 1);
+  });
+  let best = null;
+  groups.forEach(g => {
+    if (g.parts.length !== g.of) return;
+    for (let i = 0; i < g.of; i++) if (g.parts[i] == null) return;
+    try {
+      const data = JSON.parse(g.parts.join(""));
+      if (data && data.seasons && (!best || (data.updatedAt || 0) >= (best.updatedAt || 0))) best = data;
+    } catch (e) {}
+  });
+  return best;
+}
+async function readVeri() {
+  const r = await fetch("veri.json?t=" + Date.now(), { cache: "no-store" });
+  if (!r.ok) return null;
+  try {
+    const data = JSON.parse(await r.text());
+    if (data && data.seasons) return data;
+  } catch (e) {}
+  return null;
+}
+async function readNtfy() {
+  const r = await fetch(TOPIC + "/json?poll=1&since=all", { cache: "no-store" });
+  if (!r.ok) throw new Error("get");
+  return stateFromNtfy(await r.text());
+}
+async function readCloud() {
+  let file = null, live = null, ok = false;
+  try { file = await readVeri(); ok = true; } catch (e) {}
+  try { live = await readNtfy(); ok = true; } catch (e) {}
+  if (!ok) throw new Error("yok");
+  const data = newestState(file, live);
+  return data ? { data: data } : { empty: true };
+}
+async function bootCloud() {
+  markCloud("Sunucu okunuyor");
+  let remote = null, empty = false, failed = false;
+  try {
+    const got = await readCloud();
+    empty = !!got.empty;
+    remote = got.data || null;
+  } catch (e) { failed = true; }
+  if (remote) {
+    state = absorb(state, remote);
+    localStorage.setItem(KEY, JSON.stringify(state));
+    refresh();
+  }
+  booting = false;
+  if (failed) { markCloud("Sunucu yok, telefonda duruyor"); return; }
+  if (pendingPush || !remote || JSON.stringify(cloudBody()) !== JSON.stringify(remote)) await pushCloud();
+  else markCloud("Sunucuda");
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState !== "visible" || booting) return;
+  readCloud().then(got => {
+    const remote = got.data;
+    if (!remote || (remote.updatedAt || 0) <= (state.updatedAt || 0)) return;
+    state = remote;
+    localStorage.setItem(KEY, JSON.stringify(state));
+    refresh();
+    markCloud("Sunucuda");
+  }).catch(() => {});
+});
+function cur() {
+  if (!state.seasons[state.active]) state.seasons[state.active] = blankSeason();
+  return state.seasons[state.active];
+}
+function n(v) { return Number(v) || 0; }
+function esc(s) {
+  const amp = String.fromCharCode(38);
+  return String(s ?? "").replace(new RegExp("[" + amp + "<>\"']", "g"), function (c) {
+    if (c === amp) return amp + "amp;";
+    if (c === "<") return amp + "lt;";
+    if (c === ">") return amp + "gt;";
+    if (c === '"') return amp + "quot;";
+    return amp + "#39;";
+  });
+}
+function monthOf(d) { return (d || "").slice(0, 7); }
+function ymLabel(ym) {
+  if (!ym) return "";
+  const names = ["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"];
+  const [y, m] = ym.split("-");
+  return names[(+m || 1) - 1] + " " + y;
+}
+function show(id, on) { document.getElementById(id).classList.toggle("hidden", !on); }
+function seasonNames() { return Object.keys(state.seasons).sort().reverse(); }
+
+function renderSeasonSelect() {
+  const sel = document.getElementById("season");
+  sel.innerHTML = seasonNames().map(s => `<option ${s === state.active ? "selected" : ""}>${esc(s)}</option>`).join("");
+  document.getElementById("team").value = state.team || "";
+  document.getElementById("subline").textContent = "Açık Sezon: " + state.active + ". Yeni Sezon sıfırdan başlar, eski yıl silinmez.";
+  document.getElementById("mTitle").textContent = state.active + " maç girişi".replace("maç girişi", "Maç Girişi");
+  const cards = seasonNames().map(s =>
+    `<button type="button" class="ghost ${s === state.active ? "on" : ""}" data-year="${esc(s)}"><strong>${esc(s)}</strong></button>`
+  ).join("");
+  document.getElementById("yearCards").innerHTML = cards;
+  if (!document.getElementById("seasonStats").classList.contains("hidden")) paintSeasonStats();
+}
+function seasonMatches() {
+  const bag = state.seasons[state.active] || blankSeason();
+  return bag.matches || [];
+}
+function paintSeasonStats() {
+  document.getElementById("seasonStatsTitle").textContent = state.active + " Sezon İstatistiği";
+  const all = seasonMatches();
+  const played = all.filter(m => m.played !== "hayir");
+  const sum = (arr, k) => arr.reduce((s, x) => s + n(x[k]), 0);
+  if (!document.getElementById("teamStatBox").classList.contains("hidden")) {
+    const w = all.filter(m => m.result === "Galibiyet").length;
+    const d = all.filter(m => m.result === "Beraberlik").length;
+    const l = all.filter(m => m.result === "Mağlubiyet").length;
+    let gf = 0, ga = 0;
+    all.forEach(m => {
+      const p = String(m.score || "").match(/(\d+)\s*[-:]\s*(\d+)/);
+      if (!p) return;
+      gf += Number(p[1]);
+      ga += Number(p[2]);
+    });
+    document.getElementById("teamStatBox").innerHTML =
+      `<div class="line">${w} Galibiyet</div><div class="line">${d} Beraberlik</div><div class="line">${l} Mağlubiyet</div>` +
+      `<div class="line">${gf} Atılan Gol</div><div class="line">${ga} Yenilen Gol</div>`;
+  }
+  if (!document.getElementById("eymenStatBox").classList.contains("hidden")) {
+    document.getElementById("eymenStatBox").innerHTML =
+      `<div class="line">Eymen ${played.length} maç oynadı</div>` +
+      `<div class="line">Eymen ${sum(played, "min")} dakika oynadı</div>` +
+      `<div class="line">Eymen ${sum(played, "saves")} kurtarış yaptı</div>` +
+      `<div class="line">Eymen ${sum(played, "ga")} gol yedi</div>` +
+      `<div class="line">Eymen ${sum(played, "ast")} asist yaptı</div>` +
+      `<div class="line">Eymen ${sum(played, "goals")} gol attı</div>`;
+  }
+  if (!document.getElementById("antStatBox").classList.contains("hidden")) {
+    const labels = ["Takım Antrenmanı", "Bireysel Antrenman", "Atletik Performans", "Ev Antrenmanı"];
+    const trains = (state.seasons[state.active] || blankSeason()).trainings || [];
+    document.getElementById("antStatBox").innerHTML = TYPES.map((type, i) => {
+      const xs = trains.filter(t => t.type === type);
+      const mins = xs.reduce((s, x) => s + n(x.min), 0);
+      return `<div class="line" style="background:${TONES[i][0]};color:${TONES[i][1]}"><span>${labels[i]}</span><span>${xs.length} ant. ${mins} dak</span></div>`;
+    }).join("");
+  }
+}
+document.getElementById("yearCards").onclick = (e) => {
+  const b = e.target.closest("[data-year]");
+  if (!b) return;
+  state.active = b.dataset.year;
+  save();
+  refresh();
+  show("seasonStats", true);
+  show("teamStatBox", false);
+  show("eymenStatBox", false);
+  show("antStatBox", false);
+  paintSeasonStats();
+  syncSeasonPdf();
+};
+document.getElementById("teamStatBtn").onclick = () => {
+  show("eymenStatBox", false);
+  show("antStatBox", false);
+  show("teamStatBox", true);
+  paintSeasonStats();
+  syncSeasonPdf();
+};
+document.getElementById("eymenStatBtn").onclick = () => {
+  show("teamStatBox", false);
+  show("antStatBox", false);
+  show("eymenStatBox", true);
+  paintSeasonStats();
+  syncSeasonPdf();
+};
+document.getElementById("antStatBtn").onclick = () => {
+  show("teamStatBox", false);
+  show("eymenStatBox", false);
+  show("antStatBox", true);
+  paintSeasonStats();
+  syncSeasonPdf();
+};
+document.getElementById("season").onchange = () => {
+  state.active = document.getElementById("season").value;
+  save(); refresh();
+};
+document.getElementById("newSeason").onclick = () => {
+  const suggest = defaultSeasonName();
+  const name = prompt("Yeni sezon adı. Örnek: 2027-28", suggest);
+  if (!name) return;
+  const key = name.trim();
+  if (!key) return;
+  if (state.seasons[key] ? !confirm(key + " zaten var. O Sezona geçilsin mi? Veri Silinmez.") : state.seasons[key]) return;
+  if (!state.seasons[key]) state.seasons[key] = blankSeason();
+  state.active = key;
+  save(); refresh();
+  alert(key + " açıldı. Maç Ve antrenman sayaçları bu sezon için boş. Eski Sezonlar duruyor.");
+};
+document.getElementById("saveProfile").onclick = () => {
+  state.team = document.getElementById("team").value.trim();
+  save(); refresh();
+};
+function openView(name) {
+  document.body.className = name ? "view-" + name : "view-home";
+  if (name === "antrenman") { renderA(); showAnt("gir"); }
+  window.scrollTo(0, 0);
+}
+document.getElementById("homeDoors").onclick = (e) => {
+  const b = e.target.closest("[data-open]");
+  if (!b) return;
+  openView(b.dataset.open);
+};
+document.getElementById("goHome").onclick = () => openView("");
+
+function renderTypes() {
+  const sel = document.getElementById("aType");
+  sel.innerHTML = TYPES.map((t, i) => `<option value="${esc(t)}">${TYPE_LABELS[i]}</option>`).join("");
+  sel.value = aFilter;
+  document.getElementById("cmpType").innerHTML = TYPES.map(t => `<option>${t}</option>`).join("");
+}
+document.getElementById("aType").onchange = () => {
+  aFilter = document.getElementById("aType").value;
+  renderA();
+};
+
+function readMatch() {
+  return {
+    id: mEdit || Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    date: document.getElementById("mDate").value,
+    team: document.getElementById("mTeam").value.trim(),
+    opp: document.getElementById("mOpp").value.trim(),
+    type: document.getElementById("mType").value,
+    score: document.getElementById("mScore").value.trim(),
+    result: document.getElementById("mResult").value,
+    played: document.getElementById("mPlayed").value,
+    min: n(document.getElementById("mMin").value),
+    goals: n(document.getElementById("mGoals").value),
+    ga: n(document.getElementById("mGA").value),
+    ast: n(document.getElementById("mAst").value),
+    saves: n(document.getElementById("mSaves").value)
+  };
+}
+function fillMatch(m) {
+  document.getElementById("mDate").value = m.date || new Date().toISOString().slice(0, 10);
+  document.getElementById("mTeam").value = m.team || state.team || "";
+  document.getElementById("mOpp").value = m.opp || "";
+  document.getElementById("mType").value = m.type || "Hazırlık";
+  document.getElementById("mScore").value = m.score || "";
+  document.getElementById("mResult").value = m.result || "Galibiyet";
+  document.getElementById("mPlayed").value = m.played || "evet";
+  ["mMin","mGoals","mGA","mAst","mSaves"].forEach((id, i) => {
+    document.getElementById(id).value = [m.min, m.goals, m.ga, m.ast, m.saves][i] ?? 0;
+  });
+}
+function clearMatch() {
+  mEdit = null;
+  document.getElementById("mSave").textContent = "Maçı Kaydet";
+  fillMatch({ team: state.team, min: 0, goals: 0, ga: 0, ast: 0, saves: 0 });
+  document.getElementById("mOpp").value = "";
+  document.getElementById("mScore").value = "";
+}
+document.getElementById("mSave").onclick = () => {
+  const m = readMatch();
+  if (!m.date || !m.opp) { alert("Tarih Ve rakip takım gerekli."); return; }
+  if (m.played === "hayir") { m.min = m.goals = m.ga = m.ast = m.saves = 0; }
+  const bag = cur();
+  const i = bag.matches.findIndex(x => x.id === m.id);
+  if (i >= 0) bag.matches[i] = m; else bag.matches.push(m);
+  save(); clearMatch(); refresh();
+  showMac("mList");
+};
+document.getElementById("mClear").onclick = clearMatch;
+function showMac(which) {
+  ["mForm", "mList", "mStats", "mEymen"].forEach(id => show(id, id === which));
+  document.getElementById("tabMacGir").classList.toggle("on", which === "mForm");
+  document.getElementById("tabMacList").classList.toggle("on", which === "mList");
+  document.getElementById("mStatsBtn").classList.toggle("on", which === "mStats");
+  document.getElementById("tabMacEymen").classList.toggle("on", which === "mEymen");
+  if (which === "mStats") renderMatchStats();
+  if (which === "mEymen") renderMacEymen();
+}
+document.getElementById("tabMacGir").onclick = () => showMac("mForm");
+document.getElementById("tabMacList").onclick = () => showMac("mList");
+document.getElementById("mStatsBtn").onclick = () => showMac("mStats");
+document.getElementById("tabMacEymen").onclick = () => showMac("mEymen");
+function scoreParts(score) {
+  const p = String(score || "").match(/(\d+)\s*[-:]\s*(\d+)/);
+  return p ? [Number(p[1]), Number(p[2])] : null;
+}
+function matchTitle(m) {
+  const team = m.team || state.team || "Takım";
+  const opp = m.opp || "Rakip";
+  const p = scoreParts(m.score);
+  const mid = p ? p[0] + " " + opp + " " + p[1] : (m.score || "-") + " " + opp;
+  return team + ": " + mid + " " + (m.type || "");
+}
+function renderMatchStats() {
+  const all = cur().matches;
+  let gf = 0, ga = 0;
+  all.forEach(m => {
+    const p = scoreParts(m.score);
+    if (!p) return;
+    gf += p[0];
+    ga += p[1];
+  });
+  const w = all.filter(m => m.result === "Galibiyet").length;
+  const d = all.filter(m => m.result === "Beraberlik").length;
+  const l = all.filter(m => m.result === "Mağlubiyet").length;
+  document.getElementById("mStatsTitle").textContent = state.active + " Maç İstatistiği";
+  document.getElementById("mCards").innerHTML =
+    `<div class="line">${all.length} Toplam Maç</div>` +
+    `<div class="line">${w} Kazanılan Maç</div>` +
+    `<div class="line">${l} Kaybedilen Maç</div>` +
+    `<div class="line">${d} Beraberlik</div>` +
+    `<div class="line">${gf} Atılan Gol</div>` +
+    `<div class="line">${ga} Yenilen Gol</div>`;
+}
+function renderMacEymen() {
+  const played = cur().matches.filter(m => m.played !== "hayir");
+  const sum = (k) => played.reduce((s, x) => s + n(x[k]), 0);
+  document.getElementById("mEymenBox").innerHTML =
+    `<div class="line">Eymen ${played.length} maç oynadı</div>` +
+    `<div class="line">Eymen ${sum("min")} dakika oynadı</div>` +
+    `<div class="line">Eymen ${sum("saves")} kurtarış yaptı</div>` +
+    `<div class="line">Eymen ${sum("ga")} gol yedi</div>` +
+    `<div class="line">Eymen ${sum("ast")} asist yaptı</div>` +
+    `<div class="line">Eymen ${sum("goals")} gol attı</div>`;
+}
+function renderM() {
+  const rows = [...cur().matches].sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+  document.getElementById("mTable").innerHTML = rows.length ? rows.map(m => {
+    const open = openMatch === m.id;
+    const body = m.played === "hayir"
+      ? `<div class="detail">Bu Maçta Oynamadı</div>`
+      : `<div class="detail">${m.min} Dakika Oynadı</div>` +
+        `<div class="detail">${m.goals} Gol Attı</div>` +
+        `<div class="detail">${m.ga} Gol Yedi</div>` +
+        `<div class="detail">${m.ast} Asist Yaptı</div>` +
+        `<div class="detail">${m.saves} Kurtarış Yaptı</div>`;
+    const tools = open ? body + `<div class="actions"><button class="ghost" data-medit="${m.id}">Düzenle</button> <button class="warn" data-mdel="${m.id}">Sil</button></div>` : "";
+    return `<button type="button" class="match-row" data-mopen="${m.id}">${esc(matchTitle(m))}</button>${tools}`;
+  }).join("") : `<p class="note">${esc(state.active)} Sezonunda maç yok.</p>`;
+  if (!document.getElementById("mStats").classList.contains("hidden")) renderMatchStats();
+}
+document.getElementById("mTable").onclick = (e) => {
+  const openBtn = e.target.closest("[data-mopen]");
+  const ed = e.target.closest("[data-medit]");
+  const del = e.target.closest("[data-mdel]");
+  if (openBtn && !ed && !del) {
+    openMatch = openMatch === openBtn.dataset.mopen ? null : openBtn.dataset.mopen;
+    renderM();
+    return;
+  }
+  if (ed) {
+    const m = cur().matches.find(x => x.id === ed.dataset.medit);
+    if (!m) return;
+    mEdit = m.id; fillMatch(m);
+    document.getElementById("mSave").textContent = "Güncelle";
+    showMac("mForm");
+  }
+  if (del ? confirm("Maç Silinsin mi?") : del) {
+    cur().matches = cur().matches.filter(x => x.id !== del.dataset.mdel);
+    if (openMatch === del.dataset.mdel) openMatch = null;
+    save(); refresh();
+  }
+};
+
+function clearTraining() {
+  aEdit = null;
+  document.getElementById("aSave").textContent = "Antrenmanı Kaydet";
+  document.getElementById("aDate").value = new Date().toISOString().slice(0, 10);
+  document.getElementById("aMin").value = 60;
+  document.getElementById("aNote").value = "";
+}
+document.getElementById("aSave").onclick = () => {
+  const a = {
+    id: aEdit || Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    type: aFilter,
+    date: document.getElementById("aDate").value,
+    min: n(document.getElementById("aMin").value),
+    note: document.getElementById("aNote").value.trim()
+  };
+  if (!a.date || a.min <= 0) { alert("Tarih Ve süre gerekli."); return; }
+  const bag = cur();
+  const i = bag.trainings.findIndex(x => x.id === a.id);
+  if (i >= 0) bag.trainings[i] = a; else bag.trainings.push(a);
+  save(); clearTraining(); refresh();
+};
+document.getElementById("aClear").onclick = clearTraining;
+document.getElementById("aMonth").onchange = renderTrainStats;
+document.getElementById("cmpType").onchange = renderTrainStats;
+
+function renderTrainStats() {
+  const ym = document.getElementById("aMonth").value || new Date().toISOString().slice(0, 7);
+  const monthItems = cur().trainings.filter(t => monthOf(t.date) === ym);
+  document.getElementById("aCards").innerHTML = TYPES.map((type, i) => {
+    const xs = monthItems.filter(t => t.type === type);
+    const mins = xs.reduce((s, x) => s + n(x.min), 0);
+    return `<div class="card" style="background:${TONES[i][0]};color:${TONES[i][1]}"><div class="k" style="color:${TONES[i][1]}">${type}</div><div class="v" style="color:${TONES[i][1]}">${xs.length} <span style="font-size:14px">kez</span></div><div class="note" style="color:${TONES[i][1]}">${mins} dk</div></div>`;
+  }).join("") + `<div class="card"><div class="k">${esc(state.active)} / ${ymLabel(ym)}</div><div class="v">${monthItems.length}</div><div class="note">${monthItems.reduce((s, x) => s + n(x.min), 0)} dk</div></div>`;
+  drawBars("chartMonth", TYPES.map(t => monthItems.filter(x => x.type === t).reduce((s, x) => s + n(x.min), 0)), TYPES.map(t => t.split(" ")[0]));
+  const type = document.getElementById("cmpType").value || TYPES[0];
+  const months = [...new Set(cur().trainings.map(t => monthOf(t.date)).filter(Boolean))].sort();
+  drawBars("chartCmp", months.map(m => cur().trainings.filter(t => (t.type === type ? monthOf(t.date) === m : false)).reduce((s, x) => s + n(x.min), 0)), months.map(ymLabel));
+  const years = seasonNames().slice().reverse();
+  drawBars("chartYears", years.map(y => state.seasons[y].trainings.reduce((s, t) => s + n(t.min), 0)), years);
+}
+function drawBars(id, vals, labels) {
+  const c = document.getElementById(id);
+  const ctx = c.getContext("2d");
+  const w = c.width, h = c.height;
+  ctx.clearRect(0, 0, w, h);
+  if (!vals.length) { ctx.fillStyle = "#3a3414"; ctx.font = "14px Segoe UI"; ctx.fillText("Veri yok", 20, 40); return; }
+  const max = Math.max(1, ...vals);
+  const pad = 36;
+  const bw = Math.min(70, (w - pad - 10) / vals.length - 12);
+  vals.forEach((v, i) => {
+    const x = pad + i * ((w - pad - 8) / vals.length);
+    const bh = (v / max) * (h - 58);
+    ctx.fillStyle = "#c9a227";
+    ctx.fillRect(x, h - 28 - bh, bw, bh);
+    ctx.fillStyle = "#3a3414"; ctx.font = "12px Segoe UI";
+    ctx.fillText(String(v), x, h - 32 - bh);
+    ctx.fillStyle = "#3a3414";
+    ctx.fillText(String(labels[i] || "").slice(0, 12), x, h - 10);
+  });
+}
+function showAnt(which) {
+  show("aForm", which === "gir");
+  show("aList", which === "gir");
+  show("aSum", which === "stat");
+  document.getElementById("tabAntGir").classList.toggle("on", which === "gir");
+  document.getElementById("tabAntStat").classList.toggle("on", which === "stat");
+  if (which === "stat") renderAntSection();
+}
+document.getElementById("tabAntGir").onclick = () => showAnt("gir");
+document.getElementById("tabAntStat").onclick = () => showAnt("stat");
+function renderAntSection() {
+  const trains = cur().trainings || [];
+  const names = ["Takım Antrenmanı", "Bireysel Antrenman", "Atletik Performans Antrenmanı", "Ev Antrenmanı"];
+  document.getElementById("aSumBox").innerHTML = TYPES.map((type, i) => {
+    const xs = trains.filter(t => t.type === type);
+    const mins = xs.reduce((s, x) => s + n(x.min), 0);
+    return `<div class="ablock" style="background:${TONES[i][0]};color:${TONES[i][1]}"><div class="aname">${names[i]}</div><div class="anum">${xs.length} antrenman ${mins} dakika</div></div>`;
+  }).join("");
+}
+function renderA() {
+  renderTypes();
+  const rows = cur().trainings.filter(t => t.type === aFilter).sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+  const body = rows.map(t => {
+    const i = Math.max(0, TYPES.indexOf(t.type));
+    return "<tr><td>" + esc(t.date) + "</td><td><span class=\"pill\" style=\"background:" + TONES[i][0] + ";color:" + TONES[i][1] + "\">" + esc(t.type) + "</span></td><td>" + t.min + "</td><td>" + esc(t.note) + "</td><td><button class=\"ghost\" data-aedit=\"" + t.id + "\">Düzenle</button> <button class=\"warn\" data-adel=\"" + t.id + "\">Sil</button></td></tr>";
+  }).join("");
+  document.getElementById("aTable").innerHTML = rows.length
+    ? "<table><thead><tr><th>Tarih</th><th>Tür</th><th>Dakika</th><th>Not</th><th></th></tr></thead><tbody>" + body + "</tbody></table>"
+    : "<p class=\"note\">" + esc(state.active) + " / " + esc(aFilter) + " kaydı yok.</p>";
+  if (!document.getElementById("aStats").classList.contains("hidden")) renderTrainStats();
+  if (!document.getElementById("aSum").classList.contains("hidden")) renderAntSection();
+}
+document.getElementById("aTable").onclick = (e) => {
+  const ed = e.target.closest("[data-aedit]");
+  const del = e.target.closest("[data-adel]");
+  if (ed) {
+    const t = cur().trainings.find(x => x.id === ed.dataset.aedit);
+    if (!t) return;
+    aFilter = t.type; aEdit = t.id;
+    document.getElementById("aDate").value = t.date;
+    document.getElementById("aMin").value = t.min;
+    document.getElementById("aNote").value = t.note || "";
+    document.getElementById("aSave").textContent = "Güncelle";
+    renderA();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  if (del ? confirm("Antrenman Silinsin mi?") : del) {
+    cur().trainings = cur().trainings.filter(x => x.id !== del.dataset.adel);
+    save(); refresh();
+  }
+};
+
+function refresh() {
+  renderSeasonSelect();
+  if (!document.getElementById("mTeam").value) document.getElementById("mTeam").value = state.team || "";
+  renderM();
+  renderA();
+}
+document.getElementById("mDate").value = new Date().toISOString().slice(0, 10);
+document.getElementById("aDate").value = new Date().toISOString().slice(0, 10);
+document.getElementById("aMonth").value = new Date().toISOString().slice(0, 7);
+refresh();
+
+const avatarEl = document.getElementById("avatar");
+const savedAvatar = localStorage.getItem("eymen-avatar");
+if (savedAvatar) avatarEl.src = savedAvatar;
+document.getElementById("avatarFile").onchange = function (e) {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = function () {
+    localStorage.setItem("eymen-avatar", reader.result);
+    avatarEl.src = reader.result;
+  };
+  reader.readAsDataURL(f);
+};
+function syncSeasonPdf() {
+  show("pdfTeam", !document.getElementById("teamStatBox").classList.contains("hidden"));
+  show("pdfEymen", !document.getElementById("eymenStatBox").classList.contains("hidden"));
+  show("pdfAnt", !document.getElementById("antStatBox").classList.contains("hidden"));
+}
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const old = document.querySelector('script[src="' + src + '"]');
+    if (old) { resolve(); return; }
+    const s = document.createElement("script");
+    s.src = src;
+    s.onload = () => resolve();
+    s.onerror = () => { s.remove(); reject(new Error("script")); };
+    document.head.appendChild(s);
+  });
+}
+function trDate(d) {
+  const p = String(d || "").split("-");
+  return p.length === 3 ? p[2] + "." + p[1] + "." + p[0] : (d || "");
+}
+function reportSheet() {
+  const season = state.active || "";
+  const team = state.team || "Ümraniye Spor Kulübü";
+  const all = [...(cur().matches || [])].sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+  const played = all.filter(m => m.played !== "hayir");
+  const sum = (arr, k) => arr.reduce((s, x) => s + n(x[k]), 0);
+  let gf = 0, ga = 0;
+  all.forEach(m => {
+    const p = scoreParts(m.score);
+    if (!p) return;
+    gf += p[0];
+    ga += p[1];
+  });
+  const w = all.filter(m => m.result === "Galibiyet").length;
+  const d = all.filter(m => m.result === "Beraberlik").length;
+  const l = all.filter(m => m.result === "Mağlubiyet").length;
+  const trains = [...(cur().trainings || [])].sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+  const names = ["Takım Antrenmanı", "Bireysel Antrenman", "Atletik Performans Antrenmanı", "Ev Antrenmanı"];
+  const photo = document.getElementById("avatar").src;
+  const kpi = (num, label) => `<div class="pdf-kpi"><b>${num}</b><span>${label}</span></div>`;
+  const resultClass = (r) => r === "Galibiyet" ? "pdf-win" : r === "Mağlubiyet" ? "pdf-loss" : "pdf-draw";
+  const matchRows = all.length ? all.map(m => {
+    const home = m.team || state.team || "Takım";
+    const p = scoreParts(m.score);
+    const score = p ? p[0] + " - " + p[1] : (m.score || "-");
+    const playedRow = m.played === "hayir";
+    return `<tr><td>${esc(trDate(m.date))}</td><td><b>${esc(home)}</b> ${esc(score)} <b>${esc(m.opp || "Rakip")}</b></td><td>${esc(m.type || "")}</td><td class="${resultClass(m.result)}">${esc(m.result || "")}</td><td>${playedRow ? "—" : n(m.min)}</td><td>${playedRow ? "—" : n(m.goals)}</td><td>${playedRow ? "—" : n(m.ga)}</td><td>${playedRow ? "—" : n(m.ast)}</td><td>${playedRow ? "—" : n(m.saves)}</td></tr>`;
+  }).join("") : `<tr><td colspan="9">Bu sezonda maç yok.</td></tr>`;
+  const cards = [
+    [played.length, "Oynadığı Maç"],
+    [sum(played, "min"), "Dakika"],
+    [sum(played, "saves"), "Kurtarış"],
+    [sum(played, "ga"), "Yediği Gol"],
+    [sum(played, "ast"), "Asist"],
+    [sum(played, "goals"), "Attığı Gol"]
+  ].map(([num, label]) => `<div class="pdf-card"><b>${num}</b><span>${label}</span></div>`).join("");
+  const typeBlocks = TYPES.map((type, i) => {
+    const xs = trains.filter(t => t.type === type);
+    const mins = xs.reduce((s, x) => s + n(x.min), 0);
+    return `<div class="pdf-type" style="background:${TONES[i][0]};color:${TONES[i][1]}"><span>${esc(names[i])}</span><span>${xs.length} antrenman · ${mins} dakika</span></div>`;
+  }).join("");
+  const trainRows = trains.length ? trains.map(t => {
+    const label = names[Math.max(0, TYPES.indexOf(t.type))] || t.type || "";
+    return `<tr><td>${esc(trDate(t.date))}</td><td>${esc(label)}</td><td>${n(t.min)}</td><td>${esc(t.note || "")}</td></tr>`;
+  }).join("") : `<tr><td colspan="4">Bu sezonda antrenman yok.</td></tr>`;
+  const totalMin = trains.reduce((s, t) => s + n(t.min), 0);
+  const cols9 = "<colgroup><col style=\"width:11%\"><col style=\"width:27%\"><col style=\"width:11%\"><col style=\"width:12%\"><col style=\"width:7%\"><col style=\"width:7%\"><col style=\"width:8%\"><col style=\"width:8%\"><col style=\"width:9%\"></colgroup>";
+  const cols4 = "<colgroup><col style=\"width:16%\"><col style=\"width:28%\"><col style=\"width:12%\"><col style=\"width:44%\"></colgroup>";
+  const chunk = (html, extra) => `<div class="pdf-chunk"${extra || ""}>${html}</div>`;
+  const matchHead = chunk(`<table class="pdf">${cols9}<thead><tr><th>Tarih</th><th>Karşılaşma</th><th>Tür</th><th>Sonuç</th><th>Dk</th><th>Gol</th><th>Yenen</th><th>Asist</th><th>Kurtarış</th></tr></thead></table>`, " data-repeat=\"1\" data-gap=\"0\" data-bg=\"#2a211b\"");
+  const matchBody = all.length ? all.map(m => {
+    const home = m.team || state.team || "Takım";
+    const p = scoreParts(m.score);
+    const score = p ? p[0] + " - " + p[1] : (m.score || "-");
+    const playedRow = m.played === "hayir";
+    const tr = `<tr><td>${esc(trDate(m.date))}</td><td><b>${esc(home)}</b> ${esc(score)} <b>${esc(m.opp || "Rakip")}</b></td><td>${esc(m.type || "")}</td><td class="${resultClass(m.result)}">${esc(m.result || "")}</td><td>${playedRow ? "—" : n(m.min)}</td><td>${playedRow ? "—" : n(m.goals)}</td><td>${playedRow ? "—" : n(m.ga)}</td><td>${playedRow ? "—" : n(m.ast)}</td><td>${playedRow ? "—" : n(m.saves)}</td></tr>`;
+    return chunk(`<table class="pdf">${cols9}<tbody>${tr}</tbody></table>`, " data-gap=\"0\" data-bg=\"#ffffff\"");
+  }).join("") : chunk(`<div class="pdf-card" style="width:100%">Bu sezonda maç yok.</div>`);
+  const trainHead = chunk(`<table class="pdf">${cols4}<thead><tr><th>Tarih</th><th>Tür</th><th>Dakika</th><th>Ne Yapıldı</th></tr></thead></table>`, " data-repeat=\"1\" data-gap=\"0\" data-bg=\"#2a211b\"");
+  const trainBody = trains.length ? trains.map(t => {
+    const label = names[Math.max(0, TYPES.indexOf(t.type))] || t.type || "";
+    const tr = `<tr><td>${esc(trDate(t.date))}</td><td>${esc(label)}</td><td>${n(t.min)}</td><td>${esc(t.note || "")}</td></tr>`;
+    return chunk(`<table class="pdf">${cols4}<tbody>${tr}</tbody></table>`, " data-gap=\"0\" data-bg=\"#ffffff\"");
+  }).join("") : chunk(`<div class="pdf-card" style="width:100%">Bu sezonda antrenman yok.</div>`);
+  const host = document.createElement("div");
+  host.id = "pdfReport";
+  host.innerHTML =
+    chunk(`<div class="pdf-head"><img class="crest" src="umraniye-arma.png" alt=""><img class="ava" src="${photo}" alt=""><div><div class="pdf-kicker">ÜMRANİYE SPOR KULÜBÜ</div><h1>Eymen Kızılkaya</h1><div class="pdf-sub">Kaleci · ${esc(team)} · ${esc(season)} Sezon Raporu</div></div></div>`, " data-bg=\"#1c140e\"") +
+    chunk(`<div class="pdf-sec">Maç İstatistiği</div><div class="pdf-kpis">${kpi(all.length, "Toplam Maç")}${kpi(w, "Kazanılan")}${kpi(d, "Beraberlik")}${kpi(l, "Kaybedilen")}${kpi(gf, "Atılan Gol")}${kpi(ga, "Yenilen Gol")}</div>`, " data-fresh=\"1\"") +
+    chunk(`<div class="pdf-sec">Maç Sonuçları</div>`, " data-fresh=\"1\" data-keep=\"1\"") +
+    matchHead + matchBody +
+    chunk(`<div class="pdf-sec">Bireysel İstatistik</div><div class="pdf-cards">${cards}</div>`, " data-fresh=\"1\"") +
+    chunk(`<div class="pdf-sec">Antrenman İstatistikleri</div><div class="pdf-card" style="width:100%;margin-bottom:8px"><b>${trains.length} antrenman</b><span>Toplam ${totalMin} dakika</span></div>${typeBlocks}`, " data-fresh=\"1\"") +
+    chunk(`<div class="pdf-sec">Antrenmanlar</div>`, " data-fresh=\"1\" data-keep=\"1\"") +
+    trainHead + trainBody +
+    chunk(`<div class="pdf-foot">Eymen Kızılkaya · ${esc(season)} · Sezon Raporu</div>`);
+  return host;
+}
+async function sharePdf(btn) {
+  if (btn._pdfFile) {
+    try {
+      await navigator.share({ files: [btn._pdfFile], title: btn._pdfTitle || "Eymen Raporu" });
+      btn.textContent = "PDF Paylaş";
+      btn._pdfFile = null;
+    } catch (e) {
+      if (e && e.name === "AbortError") return;
+      if (btn._pdfUrl) window.open(btn._pdfUrl, "_blank");
+    }
+    return;
+  }
+  const label = btn.textContent;
+  const title = "Eymen " + (state.active || "") + " Raporu";
+  btn.disabled = true;
+  btn.textContent = "PDF hazırlanıyor";
+  const host = reportSheet();
+  const cover = document.createElement("div");
+  cover.textContent = "PDF hazırlanıyor";
+  cover.style.cssText = "position:fixed;inset:0;z-index:80;background:#1c140e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;";
+  host.style.left = "0px";
+  host.style.zIndex = "70";
+  document.body.appendChild(host);
+  document.body.appendChild(cover);
+  try {
+    await loadScript("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js");
+    await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+    await Promise.all([...host.querySelectorAll("img")].map(img => img.complete ? null : new Promise(done => { img.onload = img.onerror = done; })));
+    const sheet = await html2canvas(host, {
+      backgroundColor: "#f6f1ea",
+      scale: 2,
+      useCORS: true,
+      width: host.offsetWidth,
+      height: host.scrollHeight,
+      windowWidth: host.offsetWidth
+    });
+    const pdf = new window.jspdf.jsPDF("p", "pt", "a4");
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const margin = 28;
+    const imgW = pageW - margin * 2;
+    const ratio = sheet.height / host.scrollHeight;
+    const pieces = [];
+    host.querySelectorAll(".pdf-chunk").forEach(el => {
+      const cssH = el.offsetHeight;
+      if (cssH < 2) return;
+      const top = Math.min(sheet.height - 1, Math.max(0, Math.round(el.offsetTop * ratio)));
+      const height = Math.min(sheet.height - top, Math.max(1, Math.round(cssH * ratio)));
+      const slice = document.createElement("canvas");
+      slice.width = sheet.width;
+      slice.height = height;
+      slice.getContext("2d").drawImage(sheet, 0, top, sheet.width, height, 0, 0, sheet.width, height);
+      pieces.push({
+        h: height * imgW / sheet.width,
+        img: slice.toDataURL("image/jpeg", 0.92),
+        repeat: el.dataset.repeat === "1",
+        fresh: el.dataset.fresh === "1",
+        keep: el.dataset.keep === "1",
+        gap: el.dataset.gap === "0" ? 0 : 8
+      });
+    });
+    if (!pieces.length) throw new Error("bos");
+    const paint = () => {
+      pdf.setFillColor(246, 241, 234);
+      pdf.rect(0, 0, pageW, pageH, "F");
+    };
+    paint();
+    let y = margin;
+    let repeater = null;
+    const newPage = () => {
+      pdf.addPage();
+      paint();
+      y = margin;
+      if (repeater) {
+        pdf.addImage(repeater.img, "JPEG", margin, y, imgW, repeater.h);
+        y += repeater.h;
+      }
+    };
+    pieces.forEach((p, i) => {
+      if (p.fresh) repeater = null;
+      let need = p.h + p.gap;
+      if (p.keep && pieces[i + 1]) need += pieces[i + 1].h;
+      if (y > margin && y + need > pageH - margin) newPage();
+      pdf.addImage(p.img, "JPEG", margin, y, imgW, p.h);
+      y += p.h + p.gap;
+      if (p.repeat) repeater = p;
+    });
+    const blob = pdf.output("blob");
+    const file = new File([blob], title + ".pdf", { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+    btn._pdfFile = file;
+    btn._pdfTitle = title;
+    btn._pdfUrl = url;
+    cover.remove();
+    host.remove();
+    btn.disabled = false;
+    try {
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: title });
+        btn.textContent = label;
+        btn._pdfFile = null;
+        return;
+      }
+    } catch (e) {
+      if (e && e.name === "AbortError") { btn.textContent = label; btn._pdfFile = null; return; }
+    }
+    btn.textContent = "PDF hazır, paylaş";
+  } catch (e) {
+    cover.remove();
+    host.remove();
+    btn.disabled = false;
+    btn.textContent = label;
+    if (!e || e.name !== "AbortError") alert("PDF paylaşılamadı.");
+  }
+}
+document.body.addEventListener("click", (e) => {
+  const btn = e.target.closest(".pdf-btn");
+  if (!btn) return;
+  sharePdf(btn);
+});
+bootCloud();
+</script>
+</body>
+</html>
