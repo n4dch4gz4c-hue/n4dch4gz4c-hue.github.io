@@ -112,7 +112,7 @@
   .crest { width: 92px; height: 92px; object-fit: contain; filter: drop-shadow(0 8px 16px rgba(0,0,0,.35)); }
   .top h1 { margin: 8px 0 0; font-size: 34px; text-shadow: 0 2px 12px rgba(0,0,0,.45); }
   .top .sub { text-shadow: 0 1px 8px rgba(0,0,0,.55); }
-  .top .avatar-change { color: #fff; }
+  #cloud { font-size: 12px; color: #ffe9a3; min-height: 16px; margin-top: 4px; text-shadow: 0 1px 6px rgba(0,0,0,.65); }
   #maclar > .sec { color: #e07a32; font-size: 26px; margin: 8px 0 12px; }
   #antrenman > .sec { color: #e2c04a; font-size: 26px; margin: 18px 0 12px; }
   #aSumBox .ablock { border-radius: 14px; padding: 14px 16px; margin-top: 8px; }
@@ -158,6 +158,7 @@
     <input type="file" id="avatarFile" accept="image/*">
   </label>
   <h1>Eymen Kızılkaya</h1>
+  <div id="cloud"></div>
   <div class="sub" id="subline">Her Sezon ayrı durur. Yeni Sezon sıfırdan başlar, eski yıl silinmez.</div>
   <div class="doors" id="homeDoors">
     <button type="button" id="goSeasons" data-open="seasons">Sezonlar</button>
@@ -317,7 +318,108 @@ function load() {
   };
   return { team: (old ? old.team : old) || "", active: name, seasons };
 }
-function save() { localStorage.setItem(KEY, JSON.stringify(state)); }
+function save() {
+  state.updatedAt = Date.now();
+  localStorage.setItem(KEY, JSON.stringify(state));
+  if (booting) pendingPush = true;
+  else queueCloud();
+}
+const CLOUD = "https://json.extendsclass.com/bin/11fc24e7162e";
+let booting = true, pendingPush = false, cloudTimer = null;
+function markCloud(t) {
+  const el = document.getElementById("cloud");
+  if (el) el.textContent = t;
+}
+function countData(s) {
+  if (!s || !s.seasons) return 0;
+  let total = 0;
+  Object.keys(s.seasons).forEach(name => {
+    const sec = s.seasons[name] || {};
+    total += (sec.matches || []).length + (sec.trainings || []).length;
+  });
+  return total;
+}
+function unionRows(older, newer) {
+  const map = new Map();
+  (older || []).forEach(x => { if (x && x.id) map.set(x.id, x); });
+  (newer || []).forEach(x => { if (x && x.id) map.set(x.id, x); });
+  return [...map.values()];
+}
+function mergeStates(local, remote) {
+  const newer = (remote.updatedAt || 0) >= (local.updatedAt || 0) ? remote : local;
+  const older = newer === remote ? local : remote;
+  const names = new Set([...Object.keys(local.seasons || {}), ...Object.keys(remote.seasons || {})]);
+  const seasons = {};
+  names.forEach(name => {
+    const o = (older.seasons || {})[name] || {};
+    const n = (newer.seasons || {})[name] || {};
+    seasons[name] = {
+      matches: unionRows(o.matches, n.matches),
+      trainings: unionRows(o.trainings, n.trainings)
+    };
+  });
+  return {
+    team: newer.team || older.team || "",
+    active: newer.active || older.active || defaultSeasonName(),
+    seasons,
+    updatedAt: Date.now()
+  };
+}
+function absorb(local, remote) {
+  if (!remote || !remote.seasons) return local;
+  if (countData(remote) === 0) return local;
+  if (countData(local) === 0) return remote;
+  if (!local.updatedAt) return mergeStates(local, remote);
+  if ((remote.updatedAt || 0) >= (local.updatedAt || 0)) return remote;
+  return local;
+}
+function queueCloud() {
+  clearTimeout(cloudTimer);
+  cloudTimer = setTimeout(pushCloud, 400);
+}
+async function pushCloud() {
+  const body = JSON.stringify(state);
+  markCloud("Sunucuya yazılıyor");
+  try {
+    const r = await fetch(CLOUD, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", "Accept": "application/json", "Api-key": "noaccount" },
+      body
+    });
+    if (!r.ok) throw new Error("put");
+    if (JSON.stringify(state) !== body) { queueCloud(); return; }
+    markCloud("Sunucuda");
+  } catch (e) {
+    markCloud("Sunucuya yazılamadı, telefonda duruyor");
+  }
+}
+async function bootCloud() {
+  markCloud("Sunucu okunuyor");
+  let remote = null;
+  try {
+    const r = await fetch(CLOUD + "?t=" + Date.now(), { cache: "no-store", headers: { "Accept": "application/json" } });
+    if (r.ok) remote = await r.json();
+  } catch (e) {}
+  if (remote) {
+    state = absorb(state, remote);
+    localStorage.setItem(KEY, JSON.stringify(state));
+    refresh();
+  }
+  booting = false;
+  if (!remote) { markCloud("Sunucu yok, telefonda duruyor"); return; }
+  if (pendingPush || JSON.stringify(state) !== JSON.stringify(remote)) await pushCloud();
+  else markCloud("Sunucuda");
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState !== "visible" || booting) return;
+  fetch(CLOUD + "?t=" + Date.now(), { cache: "no-store" }).then(r => r.ok ? r.json() : null).then(remote => {
+    if (!remote || (remote.updatedAt || 0) <= (state.updatedAt || 0)) return;
+    state = remote;
+    localStorage.setItem(KEY, JSON.stringify(state));
+    refresh();
+    markCloud("Sunucuda");
+  }).catch(() => {});
+});
 function cur() {
   if (!state.seasons[state.active]) state.seasons[state.active] = blankSeason();
   return state.seasons[state.active];
@@ -749,6 +851,7 @@ document.getElementById("avatarFile").onchange = function (e) {
   };
   reader.readAsDataURL(f);
 };
+bootCloud();
 </script>
 </body>
 </html>
