@@ -12,7 +12,8 @@
   * { box-sizing: border-box; }
   body { margin: 0; font-family: "Segoe UI", system-ui, sans-serif; background: radial-gradient(1000px 420px at 0% -10%, #1b3328, var(--bg) 50%); color: var(--text); }
   header { padding: 20px 22px 6px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: end; }
-  h1 { margin: 0; font-size: 26px; } h1 span { color: var(--green); }
+  .who { display: flex; gap: 14px; align-items: center; }
+  .avatar { width: 76px; height: 76px; border-radius: 50%; object-fit: cover; object-position: center 18%; border: 2px solid var(--green); background: #101a14; }
   .sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
   .wrap { max-width: 1100px; margin: 0 auto; padding: 12px 22px 48px; }
   .tabs, .actions, .types { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
@@ -45,9 +46,12 @@
 </head>
 <body>
 <header>
-  <div>
+  <div class="who">
+    <img class="avatar" src="eymen-profil.jpg" alt="Eymen Kızılkaya">
+    <div>
     <h1>Eymen Kızılkaya</h1>
     <div class="sub" id="subline">Her sezon ayrı durur. Yeni sezon sıfırdan başlar, eski yıl silinmez.</div>
+    </div>
   </div>
   <div class="actions" style="margin:0">
     <label>Takım <input id="team" placeholder="Takım adı"></label>
