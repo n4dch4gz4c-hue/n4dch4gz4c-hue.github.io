@@ -130,11 +130,11 @@
   #goSeasons { background: #4a4742; color: #ffe9a3; }
   #goMac { background: #e07a32; color: #fff; }
   #goAnt { background: #a68412; color: #241c08; }
-  #goAntStat, #antHomeBox .line { background: #3a3a3a; color: #ffe14a; }
+  #goAntStat { background: #3a3a3a; color: #ffe14a; }
+  #antHomeBox .line { display: flex; justify-content: space-between; align-items: center; gap: 12px; border-radius: 12px; padding: 12px 14px; margin-top: 8px; font-size: 18px; font-weight: 650; }
   #teamStatBtn { background: #e07a32; color: #fff; }
   #eymenStatBtn { background: #2a2a2a; color: #ffe7a0; }
   #teamStatBox .line, #eymenStatBox .line { background: rgba(255,255,255,.72); color: #2b2418; border-radius: 12px; padding: 12px 14px; margin-top: 8px; font-size: 18px; font-weight: 650; }
-  #antHomeBox .line { border-radius: 12px; padding: 12px 14px; margin-top: 8px; font-size: 18px; font-weight: 650; }
   #maclar, #antrenman, #antstat { display: none; }
   body.view-seasons #seasons, body.view-maclar #maclar, body.view-antrenman #antrenman, body.view-antstat #antstat { display: block; }
   #goHome { display: none; margin-bottom: 12px; background: rgba(255,255,255,.18); color: #fff; }
@@ -425,7 +425,7 @@ function renderAntHome() {
   document.getElementById("antHomeBox").innerHTML = TYPES.map((type, i) => {
     const xs = trains.filter(t => t.type === type);
     const mins = xs.reduce((s, x) => s + n(x.min), 0);
-    return `<div class="line">${labels[i]} ${xs.length} Antrenman ${mins} Dakika</div>`;
+    return `<div class="line" style="background:${TONES[i][0]};color:${TONES[i][1]}"><span>${labels[i]}</span><span>${xs.length} ant. ${mins} dak</span></div>`;
   }).join("");
 }
 document.getElementById("antYears").onclick = (e) => {
