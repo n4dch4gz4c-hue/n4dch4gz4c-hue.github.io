@@ -340,8 +340,16 @@ function paintSeasonStats() {
     const w = all.filter(m => m.result === "Galibiyet").length;
     const d = all.filter(m => m.result === "Beraberlik").length;
     const l = all.filter(m => m.result === "Mağlubiyet").length;
+    let gf = 0, ga = 0;
+    all.forEach(m => {
+      const p = String(m.score || "").match(/(\d+)\s*[-:]\s*(\d+)/);
+      if (!p) return;
+      gf += Number(p[1]);
+      ga += Number(p[2]);
+    });
     document.getElementById("teamStatBox").innerHTML =
-      `<div class="line">${w} galibiyet</div><div class="line">${d} beraberlik</div><div class="line">${l} mağlubiyet</div>`;
+      `<div class="line">${w} galibiyet</div><div class="line">${d} beraberlik</div><div class="line">${l} mağlubiyet</div>` +
+      `<div class="line">${gf} gol attı</div><div class="line">${ga} gol yedi</div>`;
   }
   if (!document.getElementById("eymenStatBox").classList.contains("hidden")) {
     document.getElementById("eymenStatBox").innerHTML =
