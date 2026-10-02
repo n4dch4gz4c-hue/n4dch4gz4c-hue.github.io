@@ -57,7 +57,7 @@
   body:not(.view-home) #home { display: none; }
   #home { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 28px 16px 48px; text-align: center; }
   #home h1 { margin: 0; font-size: 36px; text-shadow: 0 2px 14px rgba(0,0,0,.5); }
-  .hero { width: min(320px, 78vw); height: min(420px, 56vh); object-fit: cover; object-position: center 15%; border-radius: 28px; border: 3px solid rgba(255,255,255,.75); box-shadow: 0 18px 40px rgba(0,0,0,.35); }
+  .hero { width: min(240px, 52vw); height: min(300px, 42vh); object-fit: cover; object-position: center 22%; border-radius: 28px; border: 3px solid rgba(255,255,255,.75); box-shadow: 0 18px 40px rgba(0,0,0,.35); }
   #home .avatar-change { color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.6); }
   .doors { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: min(520px, 92vw); margin-top: 8px; }
   .doors button { font-size: 22px; padding: 26px 10px; border-radius: 18px; }
@@ -91,7 +91,8 @@
   #antrenman button:not(.ghost):not(.warn) { background: #d4a017; color: #2c2410; }
   #antrenman .types button.on { background: #c9a227; color: #2c2410; }
   canvas { background: rgba(255, 255, 255, .45); }
-  .top { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 28px 16px 8px; }
+  .mark { display: flex; align-items: center; justify-content: center; gap: 16px; }
+  .crest { width: 132px; height: 132px; object-fit: contain; filter: drop-shadow(0 8px 16px rgba(0,0,0,.35)); }
   .top h1 { margin: 8px 0 0; font-size: 34px; text-shadow: 0 2px 12px rgba(0,0,0,.45); }
   .top .sub { text-shadow: 0 1px 8px rgba(0,0,0,.55); }
   .top .avatar-change { color: #fff; }
@@ -109,7 +110,10 @@
 </head>
 <body>
 <div class="top">
-  <img class="hero" id="avatar" src="eymen-profil.jpg" alt="Eymen Kızılkaya">
+  <div class="mark">
+    <img class="crest" src="umraniye-arma.jpg" alt="Ümraniye Spor Kulübü">
+    <img class="hero" id="avatar" src="eymen-foto.jpg" alt="Eymen Kızılkaya">
+  </div>
   <label class="avatar-change">Fotoğrafı Değiştir
     <input type="file" id="avatarFile" accept="image/*">
   </label>
