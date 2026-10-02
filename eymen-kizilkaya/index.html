@@ -324,7 +324,7 @@ function save() {
   if (booting) pendingPush = true;
   else queueCloud();
 }
-const CLOUD = "https://json.extendsclass.com/bin/11fc24e7162e";
+const CLOUD = "https://kvdb.io/TgRCdBDU41RoJZYfHz6hv3/veri";
 let booting = true, pendingPush = false, cloudTimer = null;
 function markCloud(t) {
   const el = document.getElementById("cloud");
@@ -382,10 +382,11 @@ async function pushCloud() {
   markCloud("Sunucuya yazılıyor");
   try {
     const r = await fetch(CLOUD, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json", "Accept": "application/json", "Api-key": "noaccount" },
+      method: "POST",
+      headers: { "Content-Type": "text/plain" },
       body
     });
+    if (r.status === 403) { markCloud("Maildeki bağlantıya bas, sonra yenile"); return; }
     if (!r.ok) throw new Error("put");
     if (JSON.stringify(state) !== body) { queueCloud(); return; }
     markCloud("Sunucuda");
@@ -393,12 +394,23 @@ async function pushCloud() {
     markCloud("Sunucuya yazılamadı, telefonda duruyor");
   }
 }
+async function readCloud() {
+  const r = await fetch(CLOUD + "?t=" + Date.now(), { cache: "no-store" });
+  if (r.status === 404) return { empty: true };
+  if (r.status === 403) return { locked: true };
+  if (!r.ok) throw new Error("get");
+  const text = await r.text();
+  if (!text) return { empty: true };
+  return { data: JSON.parse(text) };
+}
 async function bootCloud() {
   markCloud("Sunucu okunuyor");
-  let remote = null;
+  let remote = null, locked = false, empty = false;
   try {
-    const r = await fetch(CLOUD + "?t=" + Date.now(), { cache: "no-store", headers: { "Accept": "application/json" } });
-    if (r.ok) remote = await r.json();
+    const got = await readCloud();
+    locked = !!got.locked;
+    empty = !!got.empty;
+    remote = got.data || null;
   } catch (e) {}
   if (remote) {
     state = absorb(state, remote);
@@ -406,13 +418,15 @@ async function bootCloud() {
     refresh();
   }
   booting = false;
-  if (!remote) { markCloud("Sunucu yok, telefonda duruyor"); return; }
-  if (pendingPush || JSON.stringify(state) !== JSON.stringify(remote)) await pushCloud();
+  if (locked) { markCloud("Maildeki bağlantıya bas, sonra yenile"); return; }
+  if (!remote && !empty) { markCloud("Sunucu yok, telefonda duruyor"); return; }
+  if (pendingPush || !remote || JSON.stringify(state) !== JSON.stringify(remote)) await pushCloud();
   else markCloud("Sunucuda");
 }
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState !== "visible" || booting) return;
-  fetch(CLOUD + "?t=" + Date.now(), { cache: "no-store" }).then(r => r.ok ? r.json() : null).then(remote => {
+  readCloud().then(got => {
+    const remote = got.data;
     if (!remote || (remote.updatedAt || 0) <= (state.updatedAt || 0)) return;
     state = remote;
     localStorage.setItem(KEY, JSON.stringify(state));
