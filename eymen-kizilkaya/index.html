@@ -95,7 +95,8 @@
   #antrenman h2, #antrenman label, #antrenman .note, #antrenman th { color: #5c5428; }
   #antrenman .card { background: rgba(255, 248, 210, .75); }
   #antrenman .card .v, #antrenman td { color: #3a3414; }
-  #antrenman input, #antrenman select, #antrenman button.ghost { color: #3a3414; background: rgba(255, 252, 230, .88); border-color: rgba(140, 120, 30, .35); }
+  #antrenman input, #antrenman select, #antrenman textarea, #antrenman button.ghost { color: #3a3414; background: rgba(255, 252, 230, .88); border-color: rgba(140, 120, 30, .35); }
+  #antrenman textarea { width: 100%; min-height: 110px; resize: vertical; }
   #antrenman button:not(.ghost):not(.warn):not(.tone) { background: #d4a017; color: #2c2410; }
   #typeBtns button.tone { border: none; }
   #typeBtns button.t0 { background: #6b4f08; color: #fff4c8; }
@@ -254,26 +255,29 @@
 
   <section id="antrenman">
     <h2 class="sec">Antrenman</h2>
-    <div class="panel">
-      <h2>Antrenman Girişi</h2>
-      <div class="types" id="typeBtns"></div>
+    <div class="panel" id="aForm">
+      <h2>Antrenman Gir</h2>
+      <label>Hangi Antrenman
+        <div class="types" id="typeBtns"></div>
+      </label>
       <div class="formgrid">
         <label>Tarih <input type="date" id="aDate"></label>
         <label>Süre (dakika) <input type="number" id="aMin" min="1" value="60"></label>
-        <label>Kısa Not <input id="aNote" placeholder="Ne Çalışıldı"></label>
       </div>
+      <label>Neler Yapıldı <textarea id="aNote" placeholder="Ne çalışıldı"></textarea></label>
       <div class="actions">
         <button id="aSave">Antrenmanı Kaydet</button>
         <button class="ghost" id="aClear">Temizle</button>
       </div>
     </div>
-    <div class="panel"><h2>Bu Sezonun antrenmanları</h2><div id="aTable"></div></div>
+    <div class="panel"><h2>Bu Sezonun Antrenmanları</h2><div id="aTable"></div></div>
   </section>
 </div>
 <script>
 const KEY = "eymen-kaleci-v2";
 const OLD = "eymen-kaleci-v1";
 const TYPES = ["Takım antrenmanı", "Bireysel antrenman", "Atletik performans antrenmanı", "Ev antrenmanı"];
+const TYPE_LABELS = ["Takım Antrenmanı", "Bireysel Antrenman", "Atletik Performans", "Ev Antrenmanı"];
 const TONES = [
   ["#6b4f08", "#fff4c8"],
   ["#242424", "#f4f4f4"],
@@ -449,7 +453,7 @@ document.getElementById("goHome").onclick = () => openView("");
 
 function renderTypes() {
   document.getElementById("typeBtns").innerHTML = TYPES.map((t, i) =>
-    `<button type="button" class="tone t${i}${t === aFilter ? " on" : ""}" data-type="${esc(t)}">${t}</button>`).join("");
+    `<button type="button" class="tone t${i}${t === aFilter ? " on" : ""}" data-type="${esc(t)}">${TYPE_LABELS[i]}</button>`).join("");
   document.getElementById("cmpType").innerHTML = TYPES.map(t => `<option>${t}</option>`).join("");
 }
 document.getElementById("typeBtns").onclick = (e) => {
