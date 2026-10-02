@@ -324,9 +324,8 @@ function save() {
   if (booting) pendingPush = true;
   else queueCloud();
 }
-const CLOUD = "https://crudcrud.com/api/cfee99f7f78f416e90b499a1ed22105c/kayit";
+const TOPIC = "https://ntfy.sh/eymen-kizilkaya-n4dch4-store-9f3a";
 let booting = true, pendingPush = false, cloudTimer = null;
-let cloudId = localStorage.getItem("eymen-cloud-id") || "";
 function markCloud(t) {
   const el = document.getElementById("cloud");
   if (el) el.textContent = t;
@@ -386,68 +385,96 @@ function cloudBody() {
     updatedAt: state.updatedAt || Date.now()
   };
 }
+function newestState(a, b) {
+  if (a && b) return (b.updatedAt || 0) >= (a.updatedAt || 0) ? b : a;
+  return a || b || null;
+}
 async function pushCloud() {
-  const payload = JSON.stringify(cloudBody());
+  const text = JSON.stringify(cloudBody());
+  const size = 3000;
+  const parts = [];
+  for (let i = 0; i < text.length; i += size) parts.push(text.slice(i, i + size));
+  const stamp = String(Date.now());
   markCloud("Sunucuya yazılıyor");
   try {
-    if (cloudId) {
-      const upd = await fetch(CLOUD + "/" + cloudId, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: payload
+    for (let i = 0; i < parts.length; i++) {
+      const r = await fetch(TOPIC, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: stamp + " " + (i + 1) + "/" + parts.length + "\n" + parts[i]
       });
-      if (upd.ok) { markCloud("Sunucuda"); return; }
-      if (upd.status !== 404) throw new Error("put");
-      cloudId = "";
-      localStorage.removeItem("eymen-cloud-id");
+      if (!r.ok) throw new Error("post");
     }
-    const createdRes = await fetch(CLOUD, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: payload
-    });
-    if (!createdRes.ok) throw new Error("post");
-    const created = await createdRes.json();
-    cloudId = created._id || "";
-    if (cloudId) localStorage.setItem("eymen-cloud-id", cloudId);
     markCloud("Sunucuda");
   } catch (e) {
     markCloud("Sunucuya yazılamadı, telefonda duruyor");
   }
 }
-async function readCloud() {
-  const r = await fetch(CLOUD, { cache: "no-store" });
+function stateFromNtfy(text) {
+  const groups = new Map();
+  text.split("\n").forEach(line => {
+    if (!line.trim()) return;
+    let ev;
+    try { ev = JSON.parse(line); } catch (e) { return; }
+    if (!ev || ev.event !== "message" || !ev.message || ev.attachment) return;
+    const nl = ev.message.indexOf("\n");
+    if (nl < 1) return;
+    const head = ev.message.slice(0, nl).split(" ");
+    if (head.length < 2 || head[1].indexOf("/") < 0) return;
+    const frac = head[1].split("/");
+    const idx = Number(frac[0]), of = Number(frac[1]);
+    if (!idx || !of) return;
+    if (!groups.has(head[0])) groups.set(head[0], { of: of, parts: [] });
+    groups.get(head[0]).parts[idx - 1] = ev.message.slice(nl + 1);
+  });
+  let best = null;
+  groups.forEach(g => {
+    if (g.parts.length !== g.of) return;
+    for (let i = 0; i < g.of; i++) if (g.parts[i] == null) return;
+    try {
+      const data = JSON.parse(g.parts.join(""));
+      if (data && data.seasons && (!best || (data.updatedAt || 0) >= (best.updatedAt || 0))) best = data;
+    } catch (e) {}
+  });
+  return best;
+}
+async function readVeri() {
+  const r = await fetch("veri.json?t=" + Date.now(), { cache: "no-store" });
+  if (!r.ok) return null;
+  try {
+    const data = JSON.parse(await r.text());
+    if (data && data.seasons) return data;
+  } catch (e) {}
+  return null;
+}
+async function readNtfy() {
+  const r = await fetch(TOPIC + "/json?poll=1&since=all", { cache: "no-store" });
   if (!r.ok) throw new Error("get");
-  const list = await r.json();
-  if (!Array.isArray(list) || !list.length) return { empty: true };
-  list.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
-  const doc = list[0];
-  cloudId = doc._id || "";
-  if (cloudId) localStorage.setItem("eymen-cloud-id", cloudId);
-  return {
-    data: {
-      team: doc.team || "",
-      active: doc.active || "",
-      seasons: doc.seasons || {},
-      updatedAt: doc.updatedAt || 0
-    }
-  };
+  return stateFromNtfy(await r.text());
+}
+async function readCloud() {
+  let file = null, live = null, ok = false;
+  try { file = await readVeri(); ok = true; } catch (e) {}
+  try { live = await readNtfy(); ok = true; } catch (e) {}
+  if (!ok) throw new Error("yok");
+  const data = newestState(file, live);
+  return data ? { data: data } : { empty: true };
 }
 async function bootCloud() {
   markCloud("Sunucu okunuyor");
-  let remote = null, empty = false;
+  let remote = null, empty = false, failed = false;
   try {
     const got = await readCloud();
     empty = !!got.empty;
     remote = got.data || null;
-  } catch (e) {}
+  } catch (e) { failed = true; }
   if (remote) {
     state = absorb(state, remote);
     localStorage.setItem(KEY, JSON.stringify(state));
     refresh();
   }
   booting = false;
-  if (!remote && !empty) { markCloud("Sunucu yok, telefonda duruyor"); return; }
+  if (failed) { markCloud("Sunucu yok, telefonda duruyor"); return; }
   if (pendingPush || !remote || JSON.stringify(cloudBody()) !== JSON.stringify(remote)) await pushCloud();
   else markCloud("Sunucuda");
 }
