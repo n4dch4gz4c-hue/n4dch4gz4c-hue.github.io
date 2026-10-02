@@ -510,10 +510,13 @@ function drawBars(id, vals, labels) {
 function renderA() {
   renderTypes();
   const rows = cur().trainings.filter(t => t.type === aFilter).sort((a, b) => (b.date || "").localeCompare(a.date || ""));
-  document.getElementById("aTable").innerHTML = rows.length ? `<table><thead><tr><th>Tarih</th><th>Tür</th><th>Dakika</th><th>Not</th><th></th></tr></thead><tbody>
-    ${rows.map(t => { const i = Math.max(0, TYPES.indexOf(t.type)); return `<tr><td>${esc(t.date)}</td><td><span class="pill" style="background:${TONES[i][0]};color:${TONES[i][1]}">${esc(t.type)}</span></td><td>${t.min}</td><td>${esc(t.note)}</td>
-    <td><button class="ghost" data-aedit="${t.id}">Düzenle</button> <button class="warn" data-adel="${t.id}">Sil</button></td></tr>`).join("")}
-  </tbody></table>` : `<p class="note">${esc(state.active)} / ${esc(aFilter)} kaydı yok.</p>`;
+  const body = rows.map(t => {
+    const i = Math.max(0, TYPES.indexOf(t.type));
+    return "<tr><td>" + esc(t.date) + "</td><td><span class=\"pill\" style=\"background:" + TONES[i][0] + ";color:" + TONES[i][1] + "\">" + esc(t.type) + "</span></td><td>" + t.min + "</td><td>" + esc(t.note) + "</td><td><button class=\"ghost\" data-aedit=\"" + t.id + "\">Düzenle</button> <button class=\"warn\" data-adel=\"" + t.id + "\">Sil</button></td></tr>";
+  }).join("");
+  document.getElementById("aTable").innerHTML = rows.length
+    ? "<table><thead><tr><th>Tarih</th><th>Tür</th><th>Dakika</th><th>Not</th><th></th></tr></thead><tbody>" + body + "</tbody></table>"
+    : "<p class=\"note\">" + esc(state.active) + " / " + esc(aFilter) + " kaydı yok.</p>";
   if (!document.getElementById("aStats").classList.contains("hidden")) renderTrainStats();
 }
 document.getElementById("aTable").onclick = (e) => {
