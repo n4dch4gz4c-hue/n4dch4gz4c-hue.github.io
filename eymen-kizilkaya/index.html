@@ -116,8 +116,11 @@
   #antrenman > .sec { color: #e2c04a; font-size: 26px; margin: 18px 0 12px; }
   .stat-stack { display: flex; flex-direction: column; gap: 8px; margin: 0 0 14px; }
   .stat-stack button { width: 100%; font-size: 18px; padding: 16px; border-radius: 14px; }
-  #maclar #mStatsBtn { background: #e07a32; color: #fff; }
-  #maclar #aStatsBtn { background: #e2c04a; color: #2c2410; }
+  #maclar #macTabs button { background: #e07a32; color: #fff; }
+  #maclar #macTabs button.on { outline: 3px solid #fff3e4; }
+  #maclar #mTable button.match-row { display: block; width: 100%; text-align: left; background: rgba(255, 244, 232, .95); color: #3a2416; font-size: 17px; padding: 14px 16px; border-radius: 14px; margin-top: 8px; }
+  #mList .detail, #mStats .line { background: rgba(255,255,255,.78); color: #2b2418; border-radius: 12px; padding: 12px 14px; margin-top: 8px; font-size: 18px; font-weight: 650; }
+  #mList .detail .actions { margin-top: 8px; }
   #maclar #aStats { background: rgba(236, 224, 160, .92); border-color: rgba(170, 140, 30, .55); color: #3a3414; }
   #maclar #aStats h2, #maclar #aStats label, #maclar #aStats .note, #maclar #aStats th, #maclar #aStats .k { color: #5c5428; }
   #maclar #aStats .v, #maclar #aStats td { color: #3a3414; }
@@ -184,7 +187,12 @@
 
   <section id="maclar">
     <h2 class="sec">Maçlar</h2>
-    <div class="panel">
+    <div class="stat-stack" id="macTabs">
+      <button type="button" id="tabMacGir">Maç Gir</button>
+      <button type="button" id="tabMacList">Bu Sezonun Maçları</button>
+      <button type="button" id="mStatsBtn">Maç İstatistiği</button>
+    </div>
+    <div class="panel hidden" id="mForm">
       <h2 id="mTitle">Maç Girişi</h2>
       <div class="formgrid">
         <label>Tarih <input type="date" id="mDate"></label>
@@ -211,14 +219,13 @@
         <button class="ghost" id="mClear">Temizle</button>
       </div>
     </div>
-    <div class="stat-stack">
-      <button type="button" id="mStatsBtn">Maç İstatistiği</button>
-      <button type="button" id="aStatsBtn">Antrenman İstatistiği</button>
+    <div class="panel hidden" id="mList">
+      <h2>Bu Sezonun Maçları</h2>
+      <div id="mTable"></div>
     </div>
     <div class="panel hidden" id="mStats">
-      <h2 id="mStatsTitle">Maç Toplamı</h2>
-      <div class="cards" id="mCards"></div>
-      <p class="note">Sadece Seçili sezon. Galibiyet Ve mağlubiyet takım sonucu. Gol, Asist, kurtarış ve yediği gol Eymen’in oynadığı maçlardan.</p>
+      <h2 id="mStatsTitle">Maç İstatistiği</h2>
+      <div id="mCards"></div>
     </div>
     <div class="panel hidden" id="aStats">
       <h2>Antrenman Toplamı</h2>
@@ -238,7 +245,6 @@
       <h2 style="margin-top:16px">Yıllar Arası antrenman dakikası</h2>
       <canvas id="chartYears" width="640" height="280"></canvas>
     </div>
-    <div class="panel"><h2>Bu Sezonun maçları</h2><div id="mTable"></div></div>
   </section>
 
   <section id="antrenman">
@@ -270,7 +276,7 @@ const TONES = [
   ["#4d4d4d", "#ffe7a0"]
 ];
 let state = load();
-let mEdit = null, aEdit = null, aFilter = TYPES[0];
+let mEdit = null, openMatch = null, aEdit = null, aFilter = TYPES[0];
 
 function blankSeason() { return { matches: [], trainings: [] }; }
 function defaultSeasonName() {
@@ -492,63 +498,86 @@ document.getElementById("mSave").onclick = () => {
   const i = bag.matches.findIndex(x => x.id === m.id);
   if (i >= 0) bag.matches[i] = m; else bag.matches.push(m);
   save(); clearMatch(); refresh();
+  showMac("mList");
 };
 document.getElementById("mClear").onclick = clearMatch;
-document.getElementById("mStatsBtn").onclick = () => {
-  show("aStats", false);
-  show("mStats", true);
-  renderMatchStats();
-  document.getElementById("mStats").scrollIntoView({ behavior: "smooth", block: "start" });
-};
+function showMac(which) {
+  ["mForm", "mList", "mStats"].forEach(id => show(id, id === which));
+  document.getElementById("tabMacGir").classList.toggle("on", which === "mForm");
+  document.getElementById("tabMacList").classList.toggle("on", which === "mList");
+  document.getElementById("mStatsBtn").classList.toggle("on", which === "mStats");
+  if (which === "mStats") renderMatchStats();
+}
+document.getElementById("tabMacGir").onclick = () => showMac("mForm");
+document.getElementById("tabMacList").onclick = () => showMac("mList");
+document.getElementById("mStatsBtn").onclick = () => showMac("mStats");
+function scoreParts(score) {
+  const p = String(score || "").match(/(\d+)\s*[-:]\s*(\d+)/);
+  return p ? [Number(p[1]), Number(p[2])] : null;
+}
+function matchTitle(m) {
+  const team = m.team || state.team || "Takım";
+  const opp = m.opp || "Rakip";
+  const p = scoreParts(m.score);
+  const mid = p ? p[0] + " " + opp + " " + p[1] : (m.score || "-") + " " + opp;
+  return team + ": " + mid + " " + (m.type || "");
+}
 function renderMatchStats() {
   const all = cur().matches;
-  const played = all.filter(m => m.played !== "hayir");
-  const sum = (arr, k) => arr.reduce((s, x) => s + n(x[k]), 0);
-  const byType = ["Hazırlık", "Turnuva", "TFF maçı"].map(t => t + ": " + all.filter(m => m.type === t).length).join(" · ");
-  const cards = [
-    ["Sezon", state.active],
-    ["Toplam maç", all.length],
-    ["Kazanılan", all.filter(m => m.result === "Galibiyet").length],
-    ["Beraberlik", all.filter(m => m.result === "Beraberlik").length],
-    ["Yenilen", all.filter(m => m.result === "Mağlubiyet").length],
-    ["Eymen Oynadığı", played.length],
-    ["Eymen dakika", sum(played, "min")],
-    ["Eymen attığı gol", sum(played, "goals")],
-    ["Eymen Yediği gol", sum(played, "ga")],
-    ["Asist", sum(played, "ast")],
-    ["Kurtarış", sum(played, "saves")]
-  ];
-  document.getElementById("mStatsTitle").textContent = state.active + " Maç Toplamı";
-  document.getElementById("mCards").innerHTML = cards.map(([k, v]) =>
-    `<div class="card"><div class="k">${k}</div><div class="v">${v}</div></div>`).join("")
-    + `<div class="card" style="grid-column:1/-1"><div class="k">Çeşide Göre</div><div class="v" style="font-size:16px">${byType}</div></div>`;
+  let gf = 0, ga = 0;
+  all.forEach(m => {
+    const p = scoreParts(m.score);
+    if (!p) return;
+    gf += p[0];
+    ga += p[1];
+  });
+  const w = all.filter(m => m.result === "Galibiyet").length;
+  const d = all.filter(m => m.result === "Beraberlik").length;
+  const l = all.filter(m => m.result === "Mağlubiyet").length;
+  document.getElementById("mStatsTitle").textContent = state.active + " Maç İstatistiği";
+  document.getElementById("mCards").innerHTML =
+    `<div class="line">${all.length} Toplam Maç</div>` +
+    `<div class="line">${w} Kazanılan Maç</div>` +
+    `<div class="line">${l} Kaybedilen Maç</div>` +
+    `<div class="line">${d} Beraberlik</div>` +
+    `<div class="line">${gf} Atılan Gol</div>` +
+    `<div class="line">${ga} Yenilen Gol</div>`;
 }
 function renderM() {
   const rows = [...cur().matches].sort((a, b) => (b.date || "").localeCompare(a.date || ""));
-  document.getElementById("mTable").innerHTML = rows.length ? `<table><thead><tr>
-    <th>Tarih</th><th>Takımlar</th><th>Çeşit</th><th>Skor</th><th>Sonuç</th>
-    <th>Eymen</th><th>Gol</th><th>Yediği</th><th>Asist</th><th>Kurtarış</th><th></th>
-  </tr></thead><tbody>${rows.map(m => `<tr>
-    <td>${esc(m.date)}</td><td>${esc(m.team)} - ${esc(m.opp)}</td><td>${esc(m.type)}</td>
-    <td>${esc(m.score)}</td><td>${esc(m.result)}</td>
-    <td>${m.played === "hayir" ? "Oynamadı" : m.min + " dk"}</td>
-    <td>${m.goals}</td><td>${m.ga}</td><td>${m.ast}</td><td>${m.saves}</td>
-    <td><button class="ghost" data-medit="${m.id}">Düzenle</button> <button class="warn" data-mdel="${m.id}">Sil</button></td>
-  </tr>`).join("")}</tbody></table>` : `<p class="note">${esc(state.active)} Sezonunda maç yok.</p>`;
+  document.getElementById("mTable").innerHTML = rows.length ? rows.map(m => {
+    const open = openMatch === m.id;
+    const body = m.played === "hayir"
+      ? `<div class="detail">Bu Maçta Oynamadı</div>`
+      : `<div class="detail">${m.min} Dakika Oynadı</div>` +
+        `<div class="detail">${m.goals} Gol Attı</div>` +
+        `<div class="detail">${m.ga} Gol Yedi</div>` +
+        `<div class="detail">${m.ast} Asist Yaptı</div>` +
+        `<div class="detail">${m.saves} Kurtarış Yaptı</div>`;
+    const tools = open ? body + `<div class="actions"><button class="ghost" data-medit="${m.id}">Düzenle</button> <button class="warn" data-mdel="${m.id}">Sil</button></div>` : "";
+    return `<button type="button" class="match-row" data-mopen="${m.id}">${esc(matchTitle(m))}</button>${tools}`;
+  }).join("") : `<p class="note">${esc(state.active)} Sezonunda maç yok.</p>`;
   if (!document.getElementById("mStats").classList.contains("hidden")) renderMatchStats();
 }
 document.getElementById("mTable").onclick = (e) => {
+  const openBtn = e.target.closest("[data-mopen]");
   const ed = e.target.closest("[data-medit]");
   const del = e.target.closest("[data-mdel]");
+  if (openBtn && !ed && !del) {
+    openMatch = openMatch === openBtn.dataset.mopen ? null : openBtn.dataset.mopen;
+    renderM();
+    return;
+  }
   if (ed) {
     const m = cur().matches.find(x => x.id === ed.dataset.medit);
     if (!m) return;
     mEdit = m.id; fillMatch(m);
     document.getElementById("mSave").textContent = "Güncelle";
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    showMac("mForm");
   }
   if (del ? confirm("Maç Silinsin mi?") : del) {
     cur().matches = cur().matches.filter(x => x.id !== del.dataset.mdel);
+    if (openMatch === del.dataset.mdel) openMatch = null;
     save(); refresh();
   }
 };
@@ -575,13 +604,6 @@ document.getElementById("aSave").onclick = () => {
   save(); clearTraining(); refresh();
 };
 document.getElementById("aClear").onclick = clearTraining;
-document.getElementById("aStatsBtn").onclick = () => {
-  show("mStats", false);
-  show("aStats", true);
-  if (!document.getElementById("aMonth").value) document.getElementById("aMonth").value = new Date().toISOString().slice(0, 7);
-  renderTrainStats();
-  document.getElementById("aStats").scrollIntoView({ behavior: "smooth", block: "start" });
-};
 document.getElementById("aMonth").onchange = renderTrainStats;
 document.getElementById("cmpType").onchange = renderTrainStats;
 
