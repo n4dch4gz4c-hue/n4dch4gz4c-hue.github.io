@@ -97,6 +97,14 @@
   .top .avatar-change { color: #fff; }
   #maclar > .sec { color: #e07a32; font-size: 26px; margin: 8px 0 12px; }
   #antrenman > .sec { color: #e2c04a; font-size: 26px; margin: 18px 0 12px; }
+  .stat-stack { display: flex; flex-direction: column; gap: 8px; margin: 0 0 14px; }
+  .stat-stack button { width: 100%; font-size: 18px; padding: 16px; border-radius: 14px; }
+  #maclar #mStatsBtn { background: #e07a32; color: #fff; }
+  #maclar #aStatsBtn { background: #e2c04a; color: #2c2410; }
+  #maclar #aStats { background: rgba(236, 224, 160, .92); border-color: rgba(170, 140, 30, .55); color: #3a3414; }
+  #maclar #aStats h2, #maclar #aStats label, #maclar #aStats .note, #maclar #aStats th, #maclar #aStats .k { color: #5c5428; }
+  #maclar #aStats .v, #maclar #aStats td { color: #3a3414; }
+  #maclar #aStats input, #maclar #aStats select { color: #3a3414; background: rgba(255, 252, 230, .88); }
 </style>
 </head>
 <body>
@@ -148,13 +156,34 @@
       <div class="actions">
         <button id="mSave">Maçı Kaydet</button>
         <button class="ghost" id="mClear">Temizle</button>
-        <button id="mStatsBtn">Bu Sezon maç istatistiği</button>
       </div>
+    </div>
+    <div class="stat-stack">
+      <button type="button" id="mStatsBtn">Maç İstatistiği</button>
+      <button type="button" id="aStatsBtn">Antrenman İstatistiği</button>
     </div>
     <div class="panel hidden" id="mStats">
       <h2 id="mStatsTitle">Maç Toplamı</h2>
       <div class="cards" id="mCards"></div>
       <p class="note">Sadece Seçili sezon. Galibiyet Ve mağlubiyet takım sonucu. Gol, Asist, kurtarış ve yediği gol Eymen’in oynadığı maçlardan.</p>
+    </div>
+    <div class="panel hidden" id="aStats">
+      <h2>Antrenman Toplamı</h2>
+      <div class="actions"><label>Ay <input type="month" id="aMonth"></label></div>
+      <div class="cards" id="aCards" style="margin-top:12px"></div>
+      <div class="row2" style="margin-top:12px">
+        <div>
+          <h2>Bu Ay, türlere göre dakika</h2>
+          <canvas id="chartMonth" width="640" height="280"></canvas>
+        </div>
+        <div>
+          <h2>Bu Sezonda aylar kıyası</h2>
+          <label>Kıyaslanan Tür <select id="cmpType"></select></label>
+          <canvas id="chartCmp" width="640" height="280" style="margin-top:10px"></canvas>
+        </div>
+      </div>
+      <h2 style="margin-top:16px">Yıllar Arası antrenman dakikası</h2>
+      <canvas id="chartYears" width="640" height="280"></canvas>
     </div>
     <div class="panel"><h2>Bu Sezonun maçları</h2><div id="mTable"></div></div>
   </section>
@@ -172,26 +201,7 @@
       <div class="actions">
         <button id="aSave">Antrenmanı Kaydet</button>
         <button class="ghost" id="aClear">Temizle</button>
-        <button id="aStatsBtn">Bu Sezon aylık antrenman</button>
       </div>
-    </div>
-    <div class="panel hidden" id="aStats">
-      <h2>Aylık Antrenman ve ay kıyası</h2>
-      <div class="actions"><label>Ay <input type="month" id="aMonth"></label></div>
-      <div class="cards" id="aCards" style="margin-top:12px"></div>
-      <div class="row2" style="margin-top:12px">
-        <div>
-          <h2>Bu Ay, türlere göre dakika</h2>
-          <canvas id="chartMonth" width="640" height="280"></canvas>
-        </div>
-        <div>
-          <h2>Bu Sezonda aylar kıyası</h2>
-          <label>Kıyaslanan Tür <select id="cmpType"></select></label>
-          <canvas id="chartCmp" width="640" height="280" style="margin-top:10px"></canvas>
-        </div>
-      </div>
-      <h2 style="margin-top:16px">Yıllar Arası antrenman dakikası</h2>
-      <canvas id="chartYears" width="640" height="280"></canvas>
     </div>
     <div class="panel"><h2>Bu Sezonun antrenmanları</h2><div id="aTable"></div></div>
   </section>
@@ -362,6 +372,7 @@ document.getElementById("mSave").onclick = () => {
 };
 document.getElementById("mClear").onclick = clearMatch;
 document.getElementById("mStatsBtn").onclick = () => {
+  show("aStats", false);
   show("mStats", true);
   renderMatchStats();
   document.getElementById("mStats").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -442,6 +453,7 @@ document.getElementById("aSave").onclick = () => {
 };
 document.getElementById("aClear").onclick = clearTraining;
 document.getElementById("aStatsBtn").onclick = () => {
+  show("mStats", false);
   show("aStats", true);
   if (!document.getElementById("aMonth").value) document.getElementById("aMonth").value = new Date().toISOString().slice(0, 7);
   renderTrainStats();
