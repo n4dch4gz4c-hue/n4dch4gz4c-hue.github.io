@@ -63,6 +63,11 @@
   .doors button { font-size: 22px; padding: 26px 10px; border-radius: 18px; }
   #goMac { background: #e07a32; color: #fff; }
   #goAnt { background: #e2c04a; color: #2c2410; }
+  #homeStatsBtn { width: min(520px, 92vw); background: rgba(224, 122, 50, .9); color: #fff; font-size: 18px; padding: 16px; border-radius: 16px; }
+  #homeOpen { width: min(640px, 94vw); display: flex; flex-direction: column; gap: 8px; }
+  #homeOpen .card { text-align: left; background: rgba(255, 236, 220, .9); color: #3a2416; }
+  #homeOpen .k, #homeOpen .note { color: #6a4e3c; }
+  #homeOpen .v { color: #3a2416; }
   #goHome { margin-bottom: 10px; background: rgba(255,255,255,.16); color: #fff; }
   .wrap > .panel { background: rgba(228, 228, 226, .88); color: #2b2b2b; border-color: rgba(80, 80, 80, .25); }
   .wrap > .panel h2, .wrap > .panel .note, .wrap > .panel label { color: #3a3a3a; }
@@ -99,6 +104,8 @@
     <button type="button" id="goMac">Maçlar</button>
     <button type="button" id="goAnt">Antrenman</button>
   </div>
+  <button type="button" id="homeStatsBtn">Maç İstatistikleri</button>
+  <div id="homeOpen"></div>
 </div>
 <header>
   <div class="who">
@@ -317,6 +324,39 @@ function enterAnt() {
 document.getElementById("goMac").onclick = enterMac;
 document.getElementById("goAnt").onclick = enterAnt;
 document.getElementById("goHome").onclick = () => { document.body.className = "view-home"; };
+let homeTimer = null;
+document.getElementById("homeStatsBtn").onclick = () => {
+  if (homeTimer) { clearInterval(homeTimer); homeTimer = null; }
+  const box = document.getElementById("homeOpen");
+  box.innerHTML = "";
+  const all = cur().matches.slice().sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+  const played = all.filter(m => m.played !== "hayir");
+  const sum = (arr, k) => arr.reduce((s, x) => s + n(x[k]), 0);
+  const cards = [
+    ["Sezon", state.active],
+    ["Toplam Maç", all.length],
+    ["Kazanılan", all.filter(m => m.result === "Galibiyet").length],
+    ["Beraberlik", all.filter(m => m.result === "Beraberlik").length],
+    ["Yenilen", all.filter(m => m.result === "Mağlubiyet").length],
+    ["Eymen Oynadığı", played.length],
+    ["Eymen Dakika", sum(played, "min")],
+    ["Eymen Attığı gol", sum(played, "goals")],
+    ["Eymen Yediği gol", sum(played, "ga")],
+    ["Asist", sum(played, "ast")],
+    ["Kurtarış", sum(played, "saves")]
+  ];
+  const bits = cards.map(([k, v]) => `<div class="card home-bit"><div class="k">${esc(String(k))}</div><div class="v">${esc(String(v))}</div></div>`);
+  const rows = all.map(m => `<div class="card home-bit"><div class="k">${esc(m.date)} · ${esc(m.type)}</div><div class="v" style="font-size:18px">${esc(m.team)} ${esc(m.score)} ${esc(m.opp)}</div><div class="note">${esc(m.result)} · ${m.played === "hayir" ? "Oynamadı" : esc(String(m.min)) + " dk"} · Gol ${esc(String(m.goals))} · Yediği ${esc(String(m.ga))} · Asist ${esc(String(m.ast))} · Kurtarış ${esc(String(m.saves))}</div></div>`);
+  const items = bits.concat(rows);
+  let i = 0;
+  homeTimer = setInterval(() => {
+    if (i >= items.length) { clearInterval(homeTimer); homeTimer = null; return; }
+    box.insertAdjacentHTML("beforeend", items[i]);
+    const last = box.lastElementChild;
+    if (last) last.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    i += 1;
+  }, 320);
+};
 document.getElementById("tabM").onclick = enterMac;
 document.getElementById("tabA").onclick = enterAnt;
 
