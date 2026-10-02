@@ -953,44 +953,88 @@ function loadScript(src) {
     document.head.appendChild(s);
   });
 }
-async function sharePdf(ids, title, btn) {
+function reportSheet() {
+  const season = state.active || "";
+  const team = state.team || "Takım";
+  const all = [...(cur().matches || [])].sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+  const played = all.filter(m => m.played !== "hayir");
+  const sum = (arr, k) => arr.reduce((s, x) => s + n(x[k]), 0);
+  let gf = 0, ga = 0;
+  all.forEach(m => {
+    const p = scoreParts(m.score);
+    if (!p) return;
+    gf += p[0];
+    ga += p[1];
+  });
+  const w = all.filter(m => m.result === "Galibiyet").length;
+  const d = all.filter(m => m.result === "Beraberlik").length;
+  const l = all.filter(m => m.result === "Mağlubiyet").length;
+  const trains = [...(cur().trainings || [])].sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+  const names = ["Takım Antrenmanı", "Bireysel Antrenman", "Atletik Performans Antrenmanı", "Ev Antrenmanı"];
+  const matchBlocks = all.length ? all.map(m => {
+    const lines = m.played === "hayir"
+      ? `<div style="font-size:16px;padding:3px 0">Bu Maçta Oynamadı</div>`
+      : `<div style="font-size:16px;padding:3px 0">${n(m.min)} Dakika Oynadı</div>` +
+        `<div style="font-size:16px;padding:3px 0">${n(m.goals)} Gol Attı</div>` +
+        `<div style="font-size:16px;padding:3px 0">${n(m.ga)} Gol Yedi</div>` +
+        `<div style="font-size:16px;padding:3px 0">${n(m.ast)} Asist Yaptı</div>` +
+        `<div style="font-size:16px;padding:3px 0">${n(m.saves)} Kurtarış Yaptı</div>`;
+    return `<div style="margin:0 0 12px;padding:8px 0;border-bottom:1px solid #eee"><div style="font-size:13px;color:#666">${esc(m.date || "")}</div><div style="font-size:17px;font-weight:700;margin:2px 0 4px">${esc(matchTitle(m))}</div>${lines}</div>`;
+  }).join("") : `<div style="font-size:16px;padding:3px 0">Bu sezonda maç yok.</div>`;
+  const typeBlocks = TYPES.map((type, i) => {
+    const xs = trains.filter(t => t.type === type);
+    const mins = xs.reduce((s, x) => s + n(x.min), 0);
+    return `<div style="font-size:16px;padding:3px 0">${esc(names[i])}: ${xs.length} antrenman, ${mins} dakika</div>`;
+  }).join("");
+  const trainList = trains.length ? trains.map(t => {
+    const label = names[Math.max(0, TYPES.indexOf(t.type))] || t.type || "";
+    const note = t.note ? " — " + t.note : "";
+    return `<div style="font-size:16px;padding:3px 0">${esc(t.date || "")} · ${esc(label)} · ${n(t.min)} dakika${esc(note)}</div>`;
+  }).join("") : `<div style="font-size:16px;padding:3px 0">Bu sezonda antrenman yok.</div>`;
+  const h2 = "margin:22px 0 8px;font-size:20px;border-bottom:2px solid #e07a32;padding-bottom:4px";
+  const row = "font-size:16px;padding:3px 0";
+  const host = document.createElement("div");
+  host.style.cssText = "position:fixed;left:0;top:0;width:720px;z-index:-1;background:#fff;color:#1c1c1c;padding:28px 32px 40px;font-family:Segoe UI,sans-serif;";
+  host.innerHTML =
+    `<h1 style="margin:0;font-size:28px">Eymen Kızılkaya</h1>` +
+    `<p style="margin:6px 0 18px;font-size:16px">${esc(team)} · ${esc(season)} Sezonu</p>` +
+    `<h2 style="${h2}">Maç Sonuçları</h2>${matchBlocks}` +
+    `<h2 style="${h2}">Maç İstatistiği</h2>` +
+    `<div style="${row}">${all.length} Toplam Maç</div>` +
+    `<div style="${row}">${w} Kazanılan Maç</div>` +
+    `<div style="${row}">${l} Kaybedilen Maç</div>` +
+    `<div style="${row}">${d} Beraberlik</div>` +
+    `<div style="${row}">${gf} Atılan Gol</div>` +
+    `<div style="${row}">${ga} Yenilen Gol</div>` +
+    `<h2 style="${h2}">Bireysel İstatistik</h2>` +
+    `<div style="${row}">Eymen ${played.length} maç oynadı</div>` +
+    `<div style="${row}">Eymen ${sum(played, "min")} dakika oynadı</div>` +
+    `<div style="${row}">Eymen ${sum(played, "saves")} kurtarış yaptı</div>` +
+    `<div style="${row}">Eymen ${sum(played, "ga")} gol yedi</div>` +
+    `<div style="${row}">Eymen ${sum(played, "ast")} asist yaptı</div>` +
+    `<div style="${row}">Eymen ${sum(played, "goals")} gol attı</div>` +
+    `<h2 style="${h2}">Antrenman İstatistikleri</h2>${typeBlocks}` +
+    `<h2 style="${h2}">Antrenmanlar</h2>${trainList}`;
+  return host;
+}
+async function sharePdf(btn) {
   const label = btn.textContent;
+  const title = "Eymen " + (state.active || "") + " Raporu";
   btn.disabled = true;
   btn.textContent = "PDF hazırlanıyor";
+  const host = reportSheet();
+  document.body.appendChild(host);
   try {
     await loadScript("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js");
     await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
-    const shots = [];
-    for (const id of ids) {
-      const el = document.getElementById(id);
-      if (!el || el.classList.contains("hidden")) continue;
-      const buttons = el.querySelectorAll(".pdf-btn");
-      buttons.forEach(b => { b.style.visibility = "hidden"; });
-      const canvas = await html2canvas(el, { backgroundColor: "#f6f1e6", scale: 2, useCORS: true });
-      buttons.forEach(b => { b.style.visibility = ""; });
-      shots.push(canvas);
-    }
-    if (!shots.length) throw new Error("bos");
-    const width = Math.max.apply(null, shots.map(c => c.width));
-    const height = shots.reduce((sum, c) => sum + c.height, 0) + 24 * (shots.length + 1);
-    const sheet = document.createElement("canvas");
-    sheet.width = width;
-    sheet.height = height;
-    const ctx = sheet.getContext("2d");
-    ctx.fillStyle = "#f6f1e6";
-    ctx.fillRect(0, 0, width, height);
-    let top = 24;
-    shots.forEach(c => {
-      ctx.drawImage(c, 0, top);
-      top += c.height + 24;
-    });
+    const sheet = await html2canvas(host, { backgroundColor: "#ffffff", scale: 2, useCORS: true });
     const pdf = new window.jspdf.jsPDF("p", "pt", "a4");
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
     const margin = 28;
     const imgW = pageW - margin * 2;
     const imgH = sheet.height * imgW / sheet.width;
-    const img = sheet.toDataURL("image/jpeg", 0.9);
+    const img = sheet.toDataURL("image/jpeg", 0.92);
     let position = margin;
     pdf.addImage(img, "JPEG", margin, position, imgW, imgH);
     let left = imgH - (pageH - margin);
@@ -1014,13 +1058,14 @@ async function sharePdf(ids, title, btn) {
   } catch (e) {
     if (!e || e.name !== "AbortError") alert("PDF paylaşılamadı.");
   }
+  host.remove();
   btn.disabled = false;
   btn.textContent = label;
 }
 document.body.addEventListener("click", (e) => {
   const btn = e.target.closest(".pdf-btn");
   if (!btn) return;
-  sharePdf((btn.dataset.ids || "").split(","), btn.dataset.title || "Eymen", btn);
+  sharePdf(btn);
 });
 bootCloud();
 </script>
