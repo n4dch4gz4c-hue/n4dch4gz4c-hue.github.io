@@ -257,10 +257,10 @@
     <h2 class="sec">Antrenman</h2>
     <div class="panel" id="aForm">
       <h2>Antrenman Gir</h2>
-      <label>Hangi Antrenman
-        <div class="types" id="typeBtns"></div>
-      </label>
       <div class="formgrid">
+        <label>Hangi Antrenman
+          <select id="aType"></select>
+        </label>
         <label>Tarih <input type="date" id="aDate"></label>
         <label>Süre (dakika) <input type="number" id="aMin" min="1" value="60"></label>
       </div>
@@ -452,14 +452,13 @@ document.getElementById("homeDoors").onclick = (e) => {
 document.getElementById("goHome").onclick = () => openView("");
 
 function renderTypes() {
-  document.getElementById("typeBtns").innerHTML = TYPES.map((t, i) =>
-    `<button type="button" class="tone t${i}${t === aFilter ? " on" : ""}" data-type="${esc(t)}">${TYPE_LABELS[i]}</button>`).join("");
+  const sel = document.getElementById("aType");
+  sel.innerHTML = TYPES.map((t, i) => `<option value="${esc(t)}">${TYPE_LABELS[i]}</option>`).join("");
+  sel.value = aFilter;
   document.getElementById("cmpType").innerHTML = TYPES.map(t => `<option>${t}</option>`).join("");
 }
-document.getElementById("typeBtns").onclick = (e) => {
-  const b = e.target.closest("[data-type]");
-  if (!b) return;
-  aFilter = b.dataset.type;
+document.getElementById("aType").onchange = () => {
+  aFilter = document.getElementById("aType").value;
   renderA();
 };
 
