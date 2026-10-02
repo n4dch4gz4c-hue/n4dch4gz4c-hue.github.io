@@ -132,7 +132,9 @@
   #goAnt { background: #a68412; color: #241c08; }
   #teamStatBtn { background: #e07a32; color: #fff; }
   #eymenStatBtn { background: #2a2a2a; color: #ffe7a0; }
-  #teamStatBox .line, #eymenStatBox .line { background: rgba(255,255,255,.72); color: #2b2418; border-radius: 12px; padding: 12px 14px; margin-top: 8px; font-size: 18px; font-weight: 650; }
+  #antStatBtn, #antStatBox .line { background: #3a3a3a; color: #ffe14a; }
+  #teamStatBox .line, #eymenStatBox .line { background: rgba(255,255,255,.72); color: #2b2418; }
+  #teamStatBox .line, #eymenStatBox .line, #antStatBox .line { border-radius: 12px; padding: 12px 14px; margin-top: 8px; font-size: 18px; font-weight: 650; }
   .wrap > section { display: none; }
   body.view-seasons #seasons, body.view-maclar #maclar, body.view-antrenman #antrenman, body.view-backup #backup { display: block; }
   #goHome { display: none; margin-bottom: 12px; background: rgba(255,255,255,.18); color: #fff; }
@@ -166,9 +168,11 @@
       <div class="stat-stack">
         <button type="button" id="teamStatBtn">Takım İstatistiği</button>
         <button type="button" id="eymenStatBtn">Bireysel İstatistik</button>
+        <button type="button" id="antStatBtn">Antrenman İstatistiği</button>
       </div>
       <div id="teamStatBox" class="hidden"></div>
       <div id="eymenStatBox" class="hidden"></div>
+      <div id="antStatBox" class="hidden"></div>
     </div>
     <div class="actions">
       <label>Takım <input id="team" placeholder="Takım Adı"></label>
@@ -360,6 +364,15 @@ function paintSeasonStats() {
       `<div class="line">Eymen ${sum(played, "ast")} asist yaptı</div>` +
       `<div class="line">Eymen ${sum(played, "goals")} gol attı</div>`;
   }
+  if (!document.getElementById("antStatBox").classList.contains("hidden")) {
+    const trains = (state.seasons[state.active] || blankSeason()).trainings || [];
+    const labels = ["Takım Antrenmanı", "Bireysel Antrenman", "Atletik Performans", "Ev Antrenmanı"];
+    document.getElementById("antStatBox").innerHTML = TYPES.map((type, i) => {
+      const xs = trains.filter(t => t.type === type);
+      const mins = xs.reduce((s, x) => s + n(x.min), 0);
+      return `<div class="line">${labels[i]} ${xs.length} Antrenman ${mins} Dakika</div>`;
+    }).join("");
+  }
 }
 document.getElementById("yearCards").onclick = (e) => {
   const b = e.target.closest("[data-year]");
@@ -370,16 +383,25 @@ document.getElementById("yearCards").onclick = (e) => {
   show("seasonStats", true);
   show("teamStatBox", false);
   show("eymenStatBox", false);
+  show("antStatBox", false);
   paintSeasonStats();
 };
 document.getElementById("teamStatBtn").onclick = () => {
   show("eymenStatBox", false);
+  show("antStatBox", false);
   show("teamStatBox", true);
   paintSeasonStats();
 };
 document.getElementById("eymenStatBtn").onclick = () => {
   show("teamStatBox", false);
+  show("antStatBox", false);
   show("eymenStatBox", true);
+  paintSeasonStats();
+};
+document.getElementById("antStatBtn").onclick = () => {
+  show("teamStatBox", false);
+  show("eymenStatBox", false);
+  show("antStatBox", true);
   paintSeasonStats();
 };
 document.getElementById("season").onchange = () => {
