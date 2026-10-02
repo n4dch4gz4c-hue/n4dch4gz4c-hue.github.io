@@ -109,9 +109,24 @@
   #maclar #aStats h2, #maclar #aStats label, #maclar #aStats .note, #maclar #aStats th, #maclar #aStats .k { color: #5c5428; }
   #maclar #aStats .v, #maclar #aStats td { color: #3a3414; }
   #maclar #aStats input, #maclar #aStats select { color: #3a3414; background: rgba(255, 252, 230, .88); }
+  .doors { display: none; }
+  body.view-home .doors { display: flex; flex-direction: column; gap: 10px; width: min(420px, 88vw); margin-top: 18px; }
+  body.view-home .sub { display: none; }
+  body.view-home .wrap { display: none; }
+  .doors button { width: 100%; font-size: 22px; padding: 18px; border-radius: 16px; }
+  #goSeasons { background: #4a4742; color: #ffe9a3; }
+  #goMac { background: #e07a32; color: #fff; }
+  #goAnt { background: #a68412; color: #241c08; }
+  #goBackup { background: #2c2c2c; color: #f3f3f3; }
+  .wrap > section { display: none; }
+  body.view-seasons #seasons, body.view-maclar #maclar, body.view-antrenman #antrenman, body.view-backup #backup { display: block; }
+  #goHome { display: none; margin-bottom: 12px; background: rgba(255,255,255,.18); color: #fff; }
+  body.view-seasons #goHome, body.view-maclar #goHome, body.view-antrenman #goHome, body.view-backup #goHome { display: inline-block; }
+  body:not(.view-seasons) #seasons { display: none; }
+  body:not(.view-backup) #backup { display: none; }
 </style>
 </head>
-<body>
+<body class="view-home">
 <div class="top">
   <img class="hero" id="avatar" src="eymen-foto.jpg" alt="Eymen Kızılkaya">
   <label class="avatar-change">Fotoğrafı Değiştir
@@ -119,9 +134,16 @@
   </label>
   <h1>Eymen Kızılkaya</h1>
   <div class="sub" id="subline">Her Sezon ayrı durur. Yeni Sezon sıfırdan başlar, eski yıl silinmez.</div>
+  <div class="doors" id="homeDoors">
+    <button type="button" id="goSeasons" data-open="seasons">Sezonlar</button>
+    <button type="button" id="goMac" data-open="maclar">Maçlar</button>
+    <button type="button" id="goAnt" data-open="antrenman">Antrenman</button>
+    <button type="button" id="goBackup" data-open="backup">Kaydedilmiş Veriler</button>
+  </div>
 </div>
 <div class="wrap">
-  <div class="panel">
+  <button type="button" id="goHome">Ana Ekran</button>
+  <div class="panel" id="seasons">
     <h2>Sezonlar</h2>
     <div class="years" id="yearCards"></div>
     <p class="note">Bir Sezona basınca o yılın maç ve antrenman yeri açılır. Yeni Sezon sıfırdan başlar, eski yıl silinmez.</p>
@@ -322,6 +344,17 @@ document.getElementById("saveProfile").onclick = () => {
   state.team = document.getElementById("team").value.trim();
   save(); refresh();
 };
+function openView(name) {
+  document.body.className = name ? "view-" + name : "view-home";
+  if (name === "antrenman") renderA();
+  window.scrollTo(0, 0);
+}
+document.getElementById("homeDoors").onclick = (e) => {
+  const b = e.target.closest("[data-open]");
+  if (!b) return;
+  openView(b.dataset.open);
+};
+document.getElementById("goHome").onclick = () => openView("");
 
 function renderTypes() {
   document.getElementById("typeBtns").innerHTML = TYPES.map((t, i) =>
