@@ -113,7 +113,7 @@
   .top .sub { text-shadow: 0 1px 8px rgba(0,0,0,.55); }
   .top .avatar-change { color: #fff; }
   #maclar > .sec { color: #e07a32; font-size: 26px; margin: 8px 0 12px; }
-  #antrenman > .sec { color: #e2c04a; font-size: 26px; margin: 18px 0 12px; }
+  #antrenman > .sec, #antstat > .sec { color: #ffe14a; font-size: 26px; margin: 18px 0 12px; }
   .stat-stack { display: flex; flex-direction: column; gap: 8px; margin: 0 0 14px; }
   .stat-stack button { width: 100%; font-size: 18px; padding: 16px; border-radius: 14px; }
   #maclar #mStatsBtn { background: #e07a32; color: #fff; }
@@ -130,15 +130,15 @@
   #goSeasons { background: #4a4742; color: #ffe9a3; }
   #goMac { background: #e07a32; color: #fff; }
   #goAnt { background: #a68412; color: #241c08; }
+  #goAntStat, #antHomeBox .line { background: #3a3a3a; color: #ffe14a; }
   #teamStatBtn { background: #e07a32; color: #fff; }
   #eymenStatBtn { background: #2a2a2a; color: #ffe7a0; }
-  #antStatBtn, #antStatBox .line { background: #3a3a3a; color: #ffe14a; }
-  #teamStatBox .line, #eymenStatBox .line { background: rgba(255,255,255,.72); color: #2b2418; }
-  #teamStatBox .line, #eymenStatBox .line, #antStatBox .line { border-radius: 12px; padding: 12px 14px; margin-top: 8px; font-size: 18px; font-weight: 650; }
-  .wrap > section { display: none; }
-  body.view-seasons #seasons, body.view-maclar #maclar, body.view-antrenman #antrenman, body.view-backup #backup { display: block; }
+  #teamStatBox .line, #eymenStatBox .line { background: rgba(255,255,255,.72); color: #2b2418; border-radius: 12px; padding: 12px 14px; margin-top: 8px; font-size: 18px; font-weight: 650; }
+  #antHomeBox .line { border-radius: 12px; padding: 12px 14px; margin-top: 8px; font-size: 18px; font-weight: 650; }
+  #maclar, #antrenman, #antstat { display: none; }
+  body.view-seasons #seasons, body.view-maclar #maclar, body.view-antrenman #antrenman, body.view-antstat #antstat { display: block; }
   #goHome { display: none; margin-bottom: 12px; background: rgba(255,255,255,.18); color: #fff; }
-  body.view-seasons #goHome, body.view-maclar #goHome, body.view-antrenman #goHome, body.view-backup #goHome { display: inline-block; }
+  body.view-seasons #goHome, body.view-maclar #goHome, body.view-antrenman #goHome, body.view-antstat #goHome { display: inline-block; }
   body:not(.view-seasons) #seasons { display: none; }
   body:not(.view-backup) #backup { display: none; }
 </style>
@@ -155,6 +155,7 @@
     <button type="button" id="goSeasons" data-open="seasons">Sezonlar</button>
     <button type="button" id="goMac" data-open="maclar">Maçlar</button>
     <button type="button" id="goAnt" data-open="antrenman">Antrenman</button>
+    <button type="button" id="goAntStat" data-open="antstat">Antrenman İstatistiği</button>
   </div>
 </div>
 <div class="wrap">
@@ -168,11 +169,9 @@
       <div class="stat-stack">
         <button type="button" id="teamStatBtn">Takım İstatistiği</button>
         <button type="button" id="eymenStatBtn">Bireysel İstatistik</button>
-        <button type="button" id="antStatBtn">Antrenman İstatistiği</button>
       </div>
       <div id="teamStatBox" class="hidden"></div>
       <div id="eymenStatBox" class="hidden"></div>
-      <div id="antStatBox" class="hidden"></div>
     </div>
     <div class="actions">
       <label>Takım <input id="team" placeholder="Takım Adı"></label>
@@ -257,6 +256,11 @@
       </div>
     </div>
     <div class="panel"><h2>Bu Sezonun antrenmanları</h2><div id="aTable"></div></div>
+  </section>
+  <section id="antstat">
+    <h2 class="sec">Antrenman İstatistiği</h2>
+    <div class="years" id="antYears"></div>
+    <div id="antHomeBox"></div>
   </section>
 </div>
 <script>
@@ -364,15 +368,6 @@ function paintSeasonStats() {
       `<div class="line">Eymen ${sum(played, "ast")} asist yaptı</div>` +
       `<div class="line">Eymen ${sum(played, "goals")} gol attı</div>`;
   }
-  if (!document.getElementById("antStatBox").classList.contains("hidden")) {
-    const trains = (state.seasons[state.active] || blankSeason()).trainings || [];
-    const labels = ["Takım Antrenmanı", "Bireysel Antrenman", "Atletik Performans", "Ev Antrenmanı"];
-    document.getElementById("antStatBox").innerHTML = TYPES.map((type, i) => {
-      const xs = trains.filter(t => t.type === type);
-      const mins = xs.reduce((s, x) => s + n(x.min), 0);
-      return `<div class="line">${labels[i]} ${xs.length} Antrenman ${mins} Dakika</div>`;
-    }).join("");
-  }
 }
 document.getElementById("yearCards").onclick = (e) => {
   const b = e.target.closest("[data-year]");
@@ -383,25 +378,16 @@ document.getElementById("yearCards").onclick = (e) => {
   show("seasonStats", true);
   show("teamStatBox", false);
   show("eymenStatBox", false);
-  show("antStatBox", false);
   paintSeasonStats();
 };
 document.getElementById("teamStatBtn").onclick = () => {
   show("eymenStatBox", false);
-  show("antStatBox", false);
   show("teamStatBox", true);
   paintSeasonStats();
 };
 document.getElementById("eymenStatBtn").onclick = () => {
   show("teamStatBox", false);
-  show("antStatBox", false);
   show("eymenStatBox", true);
-  paintSeasonStats();
-};
-document.getElementById("antStatBtn").onclick = () => {
-  show("teamStatBox", false);
-  show("eymenStatBox", false);
-  show("antStatBox", true);
   paintSeasonStats();
 };
 document.getElementById("season").onchange = () => {
@@ -427,8 +413,29 @@ document.getElementById("saveProfile").onclick = () => {
 function openView(name) {
   document.body.className = name ? "view-" + name : "view-home";
   if (name === "antrenman") renderA();
+  if (name === "antstat") renderAntHome();
   window.scrollTo(0, 0);
 }
+function renderAntHome() {
+  const labels = ["Takım Antrenmanı", "Bireysel Antrenman", "Atletik Performans", "Ev Antrenmanı"];
+  document.getElementById("antYears").innerHTML = seasonNames().map(s =>
+    `<button type="button" class="ghost ${s === state.active ? "on" : ""}" data-antyear="${esc(s)}"><strong>${esc(s)}</strong></button>`
+  ).join("");
+  const trains = (state.seasons[state.active] || blankSeason()).trainings || [];
+  document.getElementById("antHomeBox").innerHTML = TYPES.map((type, i) => {
+    const xs = trains.filter(t => t.type === type);
+    const mins = xs.reduce((s, x) => s + n(x.min), 0);
+    return `<div class="line">${labels[i]} ${xs.length} Antrenman ${mins} Dakika</div>`;
+  }).join("");
+}
+document.getElementById("antYears").onclick = (e) => {
+  const b = e.target.closest("[data-antyear]");
+  if (!b) return;
+  state.active = b.dataset.antyear;
+  save();
+  refresh();
+  renderAntHome();
+};
 document.getElementById("homeDoors").onclick = (e) => {
   const b = e.target.closest("[data-open]");
   if (!b) return;
