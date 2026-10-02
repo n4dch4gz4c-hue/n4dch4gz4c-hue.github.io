@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eymen Kaleci İstatistik</title>
+<style>
+  :root {
+    --bg: #0e1411; --panel: #17211b; --panel2: #1e2b24; --line: #314438;
+    --text: #e9f3ec; --muted: #93a89b; --green: #3ddc97; --green2: #1c7a52; --gold: #e4c36a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Segoe UI", system-ui, sans-serif; background: radial-gradient(1000px 420px at 0% -10%, #1b3328, var(--bg) 50%); color: var(--text); }
+  header { padding: 20px 22px 6px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: end; }
+  h1 { margin: 0; font-size: 26px; } h1 span { color: var(--green); }
+  .sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 12px 22px 48px; }
+  .tabs, .actions, .types { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .tabs { margin: 14px 0; }
+  .tabs button, button.ghost { background: transparent; border: 1px solid var(--line); font-weight: 550; }
+  .tabs button.on, .types button.on { background: var(--green2); border-color: transparent; font-weight: 650; }
+  button, input, select { font: inherit; color: var(--text); background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+  button { cursor: pointer; background: var(--green2); border-color: transparent; font-weight: 650; }
+  button.warn { background: #6d3030; }
+  label { display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: var(--muted); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin-bottom: 14px; }
+  h2 { margin: 0 0 12px; font-size: 16px; }
+  .formgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .actions { margin-top: 12px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+  .card { background: #121c17; border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+  .card .k { color: var(--muted); font-size: 12px; } .card .v { font-size: 24px; font-weight: 720; margin-top: 3px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; }
+  .hidden { display: none; } .note { color: var(--muted); font-size: 12px; }
+  .types { margin-bottom: 12px; }
+  canvas { width: 100%; height: 240px; background: #101a14; border-radius: 12px; display: block; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 800px) { .row2 { grid-template-columns: 1fr; } }
+  .pill { font-size: 11px; padding: 2px 7px; border-radius: 99px; background: #24382c; color: var(--gold); }
+  .years { display: flex; gap: 8px; flex-wrap: wrap; }
+  .years button.on { outline: 2px solid var(--green); }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Eymen <span>Kaleci İstatistik</span></h1>
+    <div class="sub" id="subline">Her sezon ayrı durur. Yeni sezon sıfırdan başlar, eski yıl silinmez.</div>
+  </div>
+  <div class="actions" style="margin:0">
+    <label>Takım <input id="team" placeholder="Takım adı"></label>
+    <label>Sezon
+      <select id="season"></select>
+    </label>
+    <button class="ghost" id="newSeason">Yeni sezon başlat</button>
+    <button class="ghost" id="saveProfile">Takımı kaydet</button>
+    <button class="ghost" id="export">Yedek indir</button>
+    <label>Yedek yükle <input type="file" id="import" accept="application/json"></label>
+  </div>
+</header>
+<div class="wrap">
+  <div class="panel">
+    <h2>Yıllar</h2>
+    <div class="years" id="yearCards"></div>
+    <p class="note">Bir yıla basınca o sezonun maç ve antrenmanı açılır. Yeni sezon, eskisini arşivler ve boş sayfa açar.</p>
+  </div>
+  <div class="tabs">
+    <button id="tabM" class="on">Maçlar</button>
+    <button id="tabA">Antrenman</button>
+  </div>
+
+  <section id="maclar">
+    <div class="panel">
+      <h2 id="mTitle">Maç girişi</h2>
+      <div class="formgrid">
+        <label>Tarih <input type="date" id="mDate"></label>
+        <label>Bizim takım <input id="mTeam" placeholder="Takım adı"></label>
+        <label>Rakip takım <input id="mOpp" placeholder="Rakip"></label>
+        <label>Maç çeşidi
+          <select id="mType"><option>Hazırlık</option><option>Turnuva</option><option>TFF maçı</option></select>
+        </label>
+        <label>Skor <input id="mScore" placeholder="2-1"></label>
+        <label>Sonuç
+          <select id="mResult"><option>Galibiyet</option><option>Beraberlik</option><option>Mağlubiyet</option></select>
+        </label>
+        <label>Eymen oynadı mı?
+          <select id="mPlayed"><option value="evet">Evet</option><option value="hayir">Hayır</option></select>
+        </label>
+        <label>Dakika <input type="number" id="mMin" min="0" value="0"></label>
+        <label>Attığı gol <input type="number" id="mGoals" min="0" value="0"></label>
+        <label>Yediği gol <input type="number" id="mGA" min="0" value="0"></label>
+        <label>Asist <input type="number" id="mAst" min="0" value="0"></label>
+        <label>Kurtarış <input type="number" id="mSaves" min="0" value="0"></label>
+      </div>
+      <div class="actions">
+        <button id="mSave">Maçı kaydet</button>
+        <button class="ghost" id="mClear">Temizle</button>
+        <button id="mStatsBtn">Tek tuş: bu sezon maç istatistiği</button>
+      </div>
+    </div>
+    <div class="panel hidden" id="mStats">
+      <h2 id="mStatsTitle">Maç toplamı</h2>
+      <div class="cards" id="mCards"></div>
+      <p class="note">Sadece seçili sezon. Galibiyet ve mağlubiyet takım sonucu. Gol, asist, kurtarış ve yediği gol Eymen’in oynadığı maçlardan.</p>
+    </div>
+    <div class="panel"><h2>Bu sezonun maçları</h2><div id="mTable"></div></div>
+  </section>
+
+  <section id="antrenman" class="hidden">
+    <div class="panel">
+      <h2>Antrenman girişi</h2>
+      <div class="types" id="typeBtns"></div>
+      <div class="formgrid">
+        <label>Tarih <input type="date" id="aDate"></label>
+        <label>Süre (dakika) <input type="number" id="aMin" min="1" value="60"></label>
+        <label>Kısa not <input id="aNote" placeholder="Ne çalışıldı"></label>
+      </div>
+      <div class="actions">
+        <button id="aSave">Antrenmanı kaydet</button>
+        <button class="ghost" id="aClear">Temizle</button>
+        <button id="aStatsBtn">Tek tuş: bu sezon aylık antrenman</button>
+      </div>
+    </div>
+    <div class="panel hidden" id="aStats">
+      <h2>Aylık antrenman ve ay kıyası</h2>
+      <div class="actions"><label>Ay <input type="month" id="aMonth"></label></div>
+      <div class="cards" id="aCards" style="margin-top:12px"></div>
+      <div class="row2" style="margin-top:12px">
+        <div>
+          <h2>Bu ay, türlere göre dakika</h2>
+          <canvas id="chartMonth" width="640" height="280"></canvas>
+        </div>
+        <div>
+          <h2>Bu sezonda aylar kıyası</h2>
+          <label>Kıyaslanan tür <select id="cmpType"></select></label>
+          <canvas id="chartCmp" width="640" height="280" style="margin-top:10px"></canvas>
+        </div>
+      </div>
+      <h2 style="margin-top:16px">Yıllar arası antrenman dakikası</h2>
+      <canvas id="chartYears" width="640" height="280"></canvas>
+    </div>
+    <div class="panel"><h2>Bu sezonun antrenmanları</h2><div id="aTable"></div></div>
+  </section>
+</div>
+<script>
+const KEY = "eymen-kaleci-v2";
+const OLD = "eymen-kaleci-v1";
+const TYPES = ["Takım antrenmanı", "Bireysel antrenman", "Atletik performans antrenmanı", "Ev antrenmanı"];
+let state = load();
+let mEdit = null, aEdit = null, aFilter = TYPES[0];
+
+function blankSeason() { return { matches: [], trainings: [] }; }
+function defaultSeasonName() {
+  const y = new Date().getFullYear();
+  const m = new Date().getMonth();
+  return m >= 6 ? y + "-" + String(y + 1).slice(2) : (y - 1) + "-" + String(y).slice(2);
+}
+function load() {
+  try {
+    const s = JSON.parse(localStorage.getItem(KEY));
+    if (s ? (s.seasons ? s.active : s.seasons) : s) return s;
+  } catch {}
+  let old = null;
+  try { old = JSON.parse(localStorage.getItem(OLD)); } catch {}
+  const name = (old ? old.season : old) || defaultSeasonName();
+  const seasons = {};
+  seasons[name] = {
+    matches: (old ? old.matches : old) || [],
+    trainings: (old ? old.trainings : old) || []
+  };
+  return { team: (old ? old.team : old) || "", active: name, seasons };
+}
+function save() { localStorage.setItem(KEY, JSON.stringify(state)); }
+function cur() {
+  if (!state.seasons[state.active]) state.seasons[state.active] = blankSeason();
+  return state.seasons[state.active];
+}
+function n(v) { return Number(v) || 0; }
+function esc(s) {
+  const amp = String.fromCharCode(38);
+  return String(s ?? "").replace(new RegExp("[" + amp + "<>\"']", "g"), function (c) {
+    if (c === amp) return amp + "amp;";
+    if (c === "<") return amp + "lt;";
+    if (c === ">") return amp + "gt;";
+    if (c === '"') return amp + "quot;";
+    return amp + "#39;";
+  });
+}
+function monthOf(d) { return (d || "").slice(0, 7); }
+function ymLabel(ym) {
+  if (!ym) return "";
+  const names = ["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"];
+  const [y, m] = ym.split("-");
+  return names[(+m || 1) - 1] + " " + y;
+}
+function show(id, on) { document.getElementById(id).classList.toggle("hidden", !on); }
+function seasonNames() { return Object.keys(state.seasons).sort().reverse(); }
+
+function renderSeasonSelect() {
+  const sel = document.getElementById("season");
+  sel.innerHTML = seasonNames().map(s => `<option ${s === state.active ? "selected" : ""}>${esc(s)}</option>`).join("");
+  document.getElementById("team").value = state.team || "";
+  document.getElementById("subline").textContent = "Açık sezon: " + state.active + ". Yeni sezon sıfırdan başlar, eski yıl silinmez.";
+  document.getElementById("mTitle").textContent = state.active + " maç girişi";
+  const cards = seasonNames().map(s => {
+    const bag = state.seasons[s];
+    const played = bag.matches.filter(m => m.played !== "hayir").length;
+    const ga = bag.matches.reduce((a, m) => a + (m.played === "hayir" ? 0 : n(m.ga)), 0);
+    const mins = bag.trainings.reduce((a, t) => a + n(t.min), 0);
+    return `<button type="button" class="ghost ${s === state.active ? "on" : ""}" data-year="${esc(s)}">
+      <strong>${esc(s)}</strong><br><span class="note">${bag.matches.length} maç · Eymen ${played} · ${ga} gol yedi · ${mins} dk antrenman</span>
+    </button>`;
+  }).join("");
+  document.getElementById("yearCards").innerHTML = cards;
+}
+document.getElementById("yearCards").onclick = (e) => {
+  const b = e.target.closest("[data-year]");
+  if (!b) return;
+  state.active = b.dataset.year;
+  save(); refresh();
+};
+document.getElementById("season").onchange = () => {
+  state.active = document.getElementById("season").value;
+  save(); refresh();
+};
+document.getElementById("newSeason").onclick = () => {
+  const suggest = defaultSeasonName();
+  const name = prompt("Yeni sezon adı. Örnek: 2027-28", suggest);
+  if (!name) return;
+  const key = name.trim();
+  if (!key) return;
+  if (state.seasons[key] ? !confirm(key + " zaten var. O sezona geçilsin mi? Veri silinmez.") : state.seasons[key]) return;
+  if (!state.seasons[key]) state.seasons[key] = blankSeason();
+  state.active = key;
+  save(); refresh();
+  alert(key + " açıldı. Maç ve antrenman sayaçları bu sezon için boş. Eski sezonlar duruyor.");
+};
+document.getElementById("saveProfile").onclick = () => {
+  state.team = document.getElementById("team").value.trim();
+  save(); refresh();
+};
+
+document.getElementById("tabM").onclick = () => {
+  document.getElementById("tabM").classList.add("on");
+  document.getElementById("tabA").classList.remove("on");
+  show("maclar", true); show("antrenman", false);
+};
+document.getElementById("tabA").onclick = () => {
+  document.getElementById("tabA").classList.add("on");
+  document.getElementById("tabM").classList.remove("on");
+  show("antrenman", true); show("maclar", false);
+  renderA();
+};
+
+function renderTypes() {
+  document.getElementById("typeBtns").innerHTML = TYPES.map(t =>
+    `<button type="button" class="${t === aFilter ? "on" : "ghost"}" data-type="${esc(t)}">${t}</button>`).join("");
+  document.getElementById("cmpType").innerHTML = TYPES.map(t => `<option>${t}</option>`).join("");
+}
+document.getElementById("typeBtns").onclick = (e) => {
+  const b = e.target.closest("[data-type]");
+  if (!b) return;
+  aFilter = b.dataset.type;
+  renderA();
+};
+
+function readMatch() {
+  return {
+    id: mEdit || Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    date: document.getElementById("mDate").value,
+    team: document.getElementById("mTeam").value.trim(),
+    opp: document.getElementById("mOpp").value.trim(),
+    type: document.getElementById("mType").value,
+    score: document.getElementById("mScore").value.trim(),
+    result: document.getElementById("mResult").value,
+    played: document.getElementById("mPlayed").value,
+    min: n(document.getElementById("mMin").value),
+    goals: n(document.getElementById("mGoals").value),
+    ga: n(document.getElementById("mGA").value),
+    ast: n(document.getElementById("mAst").value),
+    saves: n(document.getElementById("mSaves").value)
+  };
+}
+function fillMatch(m) {
+  document.getElementById("mDate").value = m.date || new Date().toISOString().slice(0, 10);
+  document.getElementById("mTeam").value = m.team || state.team || "";
+  document.getElementById("mOpp").value = m.opp || "";
+  document.getElementById("mType").value = m.type || "Hazırlık";
+  document.getElementById("mScore").value = m.score || "";
+  document.getElementById("mResult").value = m.result || "Galibiyet";
+  document.getElementById("mPlayed").value = m.played || "evet";
+  ["mMin","mGoals","mGA","mAst","mSaves"].forEach((id, i) => {
+    document.getElementById(id).value = [m.min, m.goals, m.ga, m.ast, m.saves][i] ?? 0;
+  });
+}
+function clearMatch() {
+  mEdit = null;
+  document.getElementById("mSave").textContent = "Maçı kaydet";
+  fillMatch({ team: state.team, min: 0, goals: 0, ga: 0, ast: 0, saves: 0 });
+  document.getElementById("mOpp").value = "";
+  document.getElementById("mScore").value = "";
+}
+document.getElementById("mSave").onclick = () => {
+  const m = readMatch();
+  if (!m.date || !m.opp) { alert("Tarih ve rakip takım gerekli."); return; }
+  if (m.played === "hayir") { m.min = m.goals = m.ga = m.ast = m.saves = 0; }
+  const bag = cur();
+  const i = bag.matches.findIndex(x => x.id === m.id);
+  if (i >= 0) bag.matches[i] = m; else bag.matches.push(m);
+  save(); clearMatch(); refresh();
+};
+document.getElementById("mClear").onclick = clearMatch;
+document.getElementById("mStatsBtn").onclick = () => {
+  show("mStats", true);
+  renderMatchStats();
+  document.getElementById("mStats").scrollIntoView({ behavior: "smooth", block: "start" });
+};
+function renderMatchStats() {
+  const all = cur().matches;
+  const played = all.filter(m => m.played !== "hayir");
+  const sum = (arr, k) => arr.reduce((s, x) => s + n(x[k]), 0);
+  const byType = ["Hazırlık", "Turnuva", "TFF maçı"].map(t => t + ": " + all.filter(m => m.type === t).length).join(" · ");
+  const cards = [
+    ["Sezon", state.active],
+    ["Toplam maç", all.length],
+    ["Kazanılan", all.filter(m => m.result === "Galibiyet").length],
+    ["Beraberlik", all.filter(m => m.result === "Beraberlik").length],
+    ["Yenilen", all.filter(m => m.result === "Mağlubiyet").length],
+    ["Eymen oynadığı", played.length],
+    ["Eymen dakika", sum(played, "min")],
+    ["Eymen attığı gol", sum(played, "goals")],
+    ["Eymen yediği gol", sum(played, "ga")],
+    ["Asist", sum(played, "ast")],
+    ["Kurtarış", sum(played, "saves")]
+  ];
+  document.getElementById("mStatsTitle").textContent = state.active + " maç toplamı";
+  document.getElementById("mCards").innerHTML = cards.map(([k, v]) =>
+    `<div class="card"><div class="k">${k}</div><div class="v">${v}</div></div>`).join("")
+    + `<div class="card" style="grid-column:1/-1"><div class="k">Çeşide göre</div><div class="v" style="font-size:16px">${byType}</div></div>`;
+}
+function renderM() {
+  const rows = [...cur().matches].sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+  document.getElementById("mTable").innerHTML = rows.length ? `<table><thead><tr>
+    <th>Tarih</th><th>Takımlar</th><th>Çeşit</th><th>Skor</th><th>Sonuç</th>
+    <th>Eymen</th><th>Gol</th><th>Yediği</th><th>Asist</th><th>Kurtarış</th><th></th>
+  </tr></thead><tbody>${rows.map(m => `<tr>
+    <td>${esc(m.date)}</td><td>${esc(m.team)} - ${esc(m.opp)}</td><td>${esc(m.type)}</td>
+    <td>${esc(m.score)}</td><td>${esc(m.result)}</td>
+    <td>${m.played === "hayir" ? "Oynamadı" : m.min + " dk"}</td>
+    <td>${m.goals}</td><td>${m.ga}</td><td>${m.ast}</td><td>${m.saves}</td>
+    <td><button class="ghost" data-medit="${m.id}">Düzenle</button> <button class="warn" data-mdel="${m.id}">Sil</button></td>
+  </tr>`).join("")}</tbody></table>` : `<p class="note">${esc(state.active)} sezonunda maç yok.</p>`;
+  if (!document.getElementById("mStats").classList.contains("hidden")) renderMatchStats();
+}
+document.getElementById("mTable").onclick = (e) => {
+  const ed = e.target.closest("[data-medit]");
+  const del = e.target.closest("[data-mdel]");
+  if (ed) {
+    const m = cur().matches.find(x => x.id === ed.dataset.medit);
+    if (!m) return;
+    mEdit = m.id; fillMatch(m);
+    document.getElementById("mSave").textContent = "Güncelle";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  if (del ? confirm("Maç silinsin mi?") : del) {
+    cur().matches = cur().matches.filter(x => x.id !== del.dataset.mdel);
+    save(); refresh();
+  }
+};
+
+function clearTraining() {
+  aEdit = null;
+  document.getElementById("aSave").textContent = "Antrenmanı kaydet";
+  document.getElementById("aDate").value = new Date().toISOString().slice(0, 10);
+  document.getElementById("aMin").value = 60;
+  document.getElementById("aNote").value = "";
+}
+document.getElementById("aSave").onclick = () => {
+  const a = {
+    id: aEdit || Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    type: aFilter,
+    date: document.getElementById("aDate").value,
+    min: n(document.getElementById("aMin").value),
+    note: document.getElementById("aNote").value.trim()
+  };
+  if (!a.date || a.min <= 0) { alert("Tarih ve süre gerekli."); return; }
+  const bag = cur();
+  const i = bag.trainings.findIndex(x => x.id === a.id);
+  if (i >= 0) bag.trainings[i] = a; else bag.trainings.push(a);
+  save(); clearTraining(); refresh();
+};
+document.getElementById("aClear").onclick = clearTraining;
+document.getElementById("aStatsBtn").onclick = () => {
+  show("aStats", true);
+  if (!document.getElementById("aMonth").value) document.getElementById("aMonth").value = new Date().toISOString().slice(0, 7);
+  renderTrainStats();
+  document.getElementById("aStats").scrollIntoView({ behavior: "smooth", block: "start" });
+};
+document.getElementById("aMonth").onchange = renderTrainStats;
+document.getElementById("cmpType").onchange = renderTrainStats;
+
+function renderTrainStats() {
+  const ym = document.getElementById("aMonth").value || new Date().toISOString().slice(0, 7);
+  const monthItems = cur().trainings.filter(t => monthOf(t.date) === ym);
+  document.getElementById("aCards").innerHTML = TYPES.map(type => {
+    const xs = monthItems.filter(t => t.type === type);
+    const mins = xs.reduce((s, x) => s + n(x.min), 0);
+    return `<div class="card"><div class="k">${type}</div><div class="v">${xs.length} <span style="font-size:14px;color:var(--muted)">kez</span></div><div class="note">${mins} dk</div></div>`;
+  }).join("") + `<div class="card"><div class="k">${esc(state.active)} / ${ymLabel(ym)}</div><div class="v">${monthItems.length}</div><div class="note">${monthItems.reduce((s, x) => s + n(x.min), 0)} dk</div></div>`;
+  drawBars("chartMonth", TYPES.map(t => monthItems.filter(x => x.type === t).reduce((s, x) => s + n(x.min), 0)), TYPES.map(t => t.split(" ")[0]));
+  const type = document.getElementById("cmpType").value || TYPES[0];
+  const months = [...new Set(cur().trainings.map(t => monthOf(t.date)).filter(Boolean))].sort();
+  drawBars("chartCmp", months.map(m => cur().trainings.filter(t => (t.type === type ? monthOf(t.date) === m : false)).reduce((s, x) => s + n(x.min), 0)), months.map(ymLabel));
+  const years = seasonNames().slice().reverse();
+  drawBars("chartYears", years.map(y => state.seasons[y].trainings.reduce((s, t) => s + n(t.min), 0)), years);
+}
+function drawBars(id, vals, labels) {
+  const c = document.getElementById(id);
+  const ctx = c.getContext("2d");
+  const w = c.width, h = c.height;
+  ctx.clearRect(0, 0, w, h);
+  if (!vals.length) { ctx.fillStyle = "#93a89b"; ctx.font = "14px Segoe UI"; ctx.fillText("Veri yok", 20, 40); return; }
+  const max = Math.max(1, ...vals);
+  const pad = 36;
+  const bw = Math.min(70, (w - pad - 10) / vals.length - 12);
+  vals.forEach((v, i) => {
+    const x = pad + i * ((w - pad - 8) / vals.length);
+    const bh = (v / max) * (h - 58);
+    ctx.fillStyle = "#1c7a52";
+    ctx.fillRect(x, h - 28 - bh, bw, bh);
+    ctx.fillStyle = "#e9f3ec"; ctx.font = "12px Segoe UI";
+    ctx.fillText(String(v), x, h - 32 - bh);
+    ctx.fillStyle = "#93a89b";
+    ctx.fillText(String(labels[i] || "").slice(0, 12), x, h - 10);
+  });
+}
+function renderA() {
+  renderTypes();
+  const rows = cur().trainings.filter(t => t.type === aFilter).sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+  document.getElementById("aTable").innerHTML = rows.length ? `<table><thead><tr><th>Tarih</th><th>Tür</th><th>Dakika</th><th>Not</th><th></th></tr></thead><tbody>
+    ${rows.map(t => `<tr><td>${esc(t.date)}</td><td><span class="pill">${esc(t.type)}</span></td><td>${t.min}</td><td>${esc(t.note)}</td>
+    <td><button class="ghost" data-aedit="${t.id}">Düzenle</button> <button class="warn" data-adel="${t.id}">Sil</button></td></tr>`).join("")}
+  </tbody></table>` : `<p class="note">${esc(state.active)} / ${esc(aFilter)} kaydı yok.</p>`;
+  if (!document.getElementById("aStats").classList.contains("hidden")) renderTrainStats();
+}
+document.getElementById("aTable").onclick = (e) => {
+  const ed = e.target.closest("[data-aedit]");
+  const del = e.target.closest("[data-adel]");
+  if (ed) {
+    const t = cur().trainings.find(x => x.id === ed.dataset.aedit);
+    if (!t) return;
+    aFilter = t.type; aEdit = t.id;
+    document.getElementById("aDate").value = t.date;
+    document.getElementById("aMin").value = t.min;
+    document.getElementById("aNote").value = t.note || "";
+    document.getElementById("aSave").textContent = "Güncelle";
+    renderA();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  if (del ? confirm("Antrenman silinsin mi?") : del) {
+    cur().trainings = cur().trainings.filter(x => x.id !== del.dataset.adel);
+    save(); refresh();
+  }
+};
+
+document.getElementById("export").onclick = () => {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "eymen-istatistik.json";
+  a.click();
+};
+document.getElementById("import").onchange = async (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const data = JSON.parse(await f.text());
+  if (data ? (data.seasons ? data.active : data.seasons) : data) state = data;
+  else if (data ? Array.isArray(data.matches) : data) {
+    const name = data.season || defaultSeasonName();
+    state = { team: data.team || "", active: name, seasons: { [name]: { matches: data.matches, trainings: data.trainings || [] } } };
+  } else { alert("Bu yedek dosyası değil."); return; }
+  save(); refresh();
+};
+
+function refresh() {
+  renderSeasonSelect();
+  if (!document.getElementById("mTeam").value) document.getElementById("mTeam").value = state.team || "";
+  renderM();
+  renderA();
+}
+document.getElementById("mDate").value = new Date().toISOString().slice(0, 10);
+document.getElementById("aDate").value = new Date().toISOString().slice(0, 10);
+document.getElementById("aMonth").value = new Date().toISOString().slice(0, 7);
+refresh();
+</script>
+</body>
+</html>
