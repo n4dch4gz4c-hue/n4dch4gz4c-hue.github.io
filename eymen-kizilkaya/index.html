@@ -324,8 +324,9 @@ function save() {
   if (booting) pendingPush = true;
   else queueCloud();
 }
-const CLOUD = "https://kvdb.io/5w2P6EQvjtSKg9qLtuMxj2/veri";
+const CLOUD = "https://crudcrud.com/api/cfee99f7f78f416e90b499a1ed22105c/kayit";
 let booting = true, pendingPush = false, cloudTimer = null;
+let cloudId = localStorage.getItem("eymen-cloud-id") || "";
 function markCloud(t) {
   const el = document.getElementById("cloud");
   if (el) el.textContent = t;
@@ -377,38 +378,66 @@ function queueCloud() {
   clearTimeout(cloudTimer);
   cloudTimer = setTimeout(pushCloud, 400);
 }
+function cloudBody() {
+  return {
+    team: state.team || "",
+    active: state.active || "",
+    seasons: state.seasons || {},
+    updatedAt: state.updatedAt || Date.now()
+  };
+}
 async function pushCloud() {
-  const body = JSON.stringify(state);
+  const payload = JSON.stringify(cloudBody());
   markCloud("Sunucuya yazılıyor");
   try {
-    const r = await fetch(CLOUD, {
+    if (cloudId) {
+      const upd = await fetch(CLOUD + "/" + cloudId, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: payload
+      });
+      if (upd.ok) { markCloud("Sunucuda"); return; }
+      if (upd.status !== 404) throw new Error("put");
+      cloudId = "";
+      localStorage.removeItem("eymen-cloud-id");
+    }
+    const createdRes = await fetch(CLOUD, {
       method: "POST",
-      headers: { "Content-Type": "text/plain" },
-      body
+      headers: { "Content-Type": "application/json" },
+      body: payload
     });
-    if (r.status === 403) { markCloud("Maildeki bağlantıya bas, sonra yenile"); return; }
-    if (!r.ok) throw new Error("put");
-    if (JSON.stringify(state) !== body) { queueCloud(); return; }
+    if (!createdRes.ok) throw new Error("post");
+    const created = await createdRes.json();
+    cloudId = created._id || "";
+    if (cloudId) localStorage.setItem("eymen-cloud-id", cloudId);
     markCloud("Sunucuda");
   } catch (e) {
     markCloud("Sunucuya yazılamadı, telefonda duruyor");
   }
 }
 async function readCloud() {
-  const r = await fetch(CLOUD + "?t=" + Date.now(), { cache: "no-store" });
-  if (r.status === 404) return { empty: true };
-  if (r.status === 403) return { locked: true };
+  const r = await fetch(CLOUD, { cache: "no-store" });
   if (!r.ok) throw new Error("get");
-  const text = await r.text();
-  if (!text) return { empty: true };
-  return { data: JSON.parse(text) };
+  const list = await r.json();
+  if (!Array.isArray(list) || !list.length) return { empty: true };
+  list.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  const doc = list[0];
+  cloudId = doc._id || "";
+  if (cloudId) localStorage.setItem("eymen-cloud-id", cloudId);
+  return {
+    data: {
+      team: doc.team || "",
+      active: doc.active || "",
+      seasons: doc.seasons || {},
+      updatedAt: doc.updatedAt || 0
+    }
+  };
 }
 async function bootCloud() {
   markCloud("Sunucu okunuyor");
-  let remote = null, locked = false, empty = false;
+  let remote = null, empty = false;
   try {
     const got = await readCloud();
-    locked = !!got.locked;
     empty = !!got.empty;
     remote = got.data || null;
   } catch (e) {}
@@ -418,9 +447,8 @@ async function bootCloud() {
     refresh();
   }
   booting = false;
-  if (locked) { markCloud("Maildeki bağlantıya bas, sonra yenile"); return; }
   if (!remote && !empty) { markCloud("Sunucu yok, telefonda duruyor"); return; }
-  if (pendingPush || !remote || JSON.stringify(state) !== JSON.stringify(remote)) await pushCloud();
+  if (pendingPush || !remote || JSON.stringify(cloudBody()) !== JSON.stringify(remote)) await pushCloud();
   else markCloud("Sunucuda");
 }
 document.addEventListener("visibilitychange", () => {
