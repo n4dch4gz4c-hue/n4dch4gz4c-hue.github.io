@@ -117,9 +117,10 @@
   .stat-stack { display: flex; flex-direction: column; gap: 8px; margin: 0 0 14px; }
   .stat-stack button { width: 100%; font-size: 18px; padding: 16px; border-radius: 14px; }
   #maclar #macTabs button { background: #e07a32; color: #fff; }
+  #maclar #macTabs #tabMacEymen { background: #2a2a2a; color: #ffe7a0; }
   #maclar #macTabs button.on { outline: 3px solid #fff3e4; }
   #maclar #mTable button.match-row { display: block; width: 100%; text-align: left; background: rgba(255, 244, 232, .95); color: #3a2416; font-size: 17px; padding: 14px 16px; border-radius: 14px; margin-top: 8px; }
-  #mList .detail, #mStats .line { background: rgba(255,255,255,.78); color: #2b2418; border-radius: 12px; padding: 12px 14px; margin-top: 8px; font-size: 18px; font-weight: 650; }
+  #mList .detail, #mStats .line, #mEymen .line { background: rgba(255,255,255,.78); color: #2b2418; border-radius: 12px; padding: 12px 14px; margin-top: 8px; font-size: 18px; font-weight: 650; }
   #mList .detail .actions { margin-top: 8px; }
   #maclar #aStats { background: rgba(236, 224, 160, .92); border-color: rgba(170, 140, 30, .55); color: #3a3414; }
   #maclar #aStats h2, #maclar #aStats label, #maclar #aStats .note, #maclar #aStats th, #maclar #aStats .k { color: #5c5428; }
@@ -191,6 +192,7 @@
       <button type="button" id="tabMacGir">Maç Gir</button>
       <button type="button" id="tabMacList">Bu Sezonun Maçları</button>
       <button type="button" id="mStatsBtn">Maç İstatistiği</button>
+      <button type="button" id="tabMacEymen">Bireysel İstatistik</button>
     </div>
     <div class="panel hidden" id="mForm">
       <h2 id="mTitle">Maç Girişi</h2>
@@ -226,6 +228,10 @@
     <div class="panel hidden" id="mStats">
       <h2 id="mStatsTitle">Maç İstatistiği</h2>
       <div id="mCards"></div>
+    </div>
+    <div class="panel hidden" id="mEymen">
+      <h2>Bireysel İstatistik</h2>
+      <div id="mEymenBox"></div>
     </div>
     <div class="panel hidden" id="aStats">
       <h2>Antrenman Toplamı</h2>
@@ -502,15 +508,18 @@ document.getElementById("mSave").onclick = () => {
 };
 document.getElementById("mClear").onclick = clearMatch;
 function showMac(which) {
-  ["mForm", "mList", "mStats"].forEach(id => show(id, id === which));
+  ["mForm", "mList", "mStats", "mEymen"].forEach(id => show(id, id === which));
   document.getElementById("tabMacGir").classList.toggle("on", which === "mForm");
   document.getElementById("tabMacList").classList.toggle("on", which === "mList");
   document.getElementById("mStatsBtn").classList.toggle("on", which === "mStats");
+  document.getElementById("tabMacEymen").classList.toggle("on", which === "mEymen");
   if (which === "mStats") renderMatchStats();
+  if (which === "mEymen") renderMacEymen();
 }
 document.getElementById("tabMacGir").onclick = () => showMac("mForm");
 document.getElementById("tabMacList").onclick = () => showMac("mList");
 document.getElementById("mStatsBtn").onclick = () => showMac("mStats");
+document.getElementById("tabMacEymen").onclick = () => showMac("mEymen");
 function scoreParts(score) {
   const p = String(score || "").match(/(\d+)\s*[-:]\s*(\d+)/);
   return p ? [Number(p[1]), Number(p[2])] : null;
@@ -542,6 +551,17 @@ function renderMatchStats() {
     `<div class="line">${d} Beraberlik</div>` +
     `<div class="line">${gf} Atılan Gol</div>` +
     `<div class="line">${ga} Yenilen Gol</div>`;
+}
+function renderMacEymen() {
+  const played = cur().matches.filter(m => m.played !== "hayir");
+  const sum = (k) => played.reduce((s, x) => s + n(x[k]), 0);
+  document.getElementById("mEymenBox").innerHTML =
+    `<div class="line">Eymen ${played.length} maç oynadı</div>` +
+    `<div class="line">Eymen ${sum("min")} dakika oynadı</div>` +
+    `<div class="line">Eymen ${sum("saves")} kurtarış yaptı</div>` +
+    `<div class="line">Eymen ${sum("ga")} gol yedi</div>` +
+    `<div class="line">Eymen ${sum("ast")} asist yaptı</div>` +
+    `<div class="line">Eymen ${sum("goals")} gol attı</div>`;
 }
 function renderM() {
   const rows = [...cur().matches].sort((a, b) => (b.date || "").localeCompare(a.date || ""));
