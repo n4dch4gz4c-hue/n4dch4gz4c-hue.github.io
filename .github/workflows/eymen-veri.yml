@@ -1,0 +1,87 @@
+name: eymen-veri
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Kaydi dosyaya al
+        run: |
+          python3 - << 'PY'
+          import json, urllib.request, pathlib
+          url = 'https://ntfy.sh/eymen-kizilkaya-n4dch4-store-9f3a/json?poll=1&since=all'
+          req = urllib.request.Request(url, headers={'User-Agent': 'eymen-sync'})
+          with urllib.request.urlopen(req, timeout=40) as r:
+              text = r.read().decode()
+          groups = {}
+          nl = chr(10)
+          for line in text.splitlines():
+              if not line.strip():
+                  continue
+              try:
+                  ev = json.loads(line)
+              except Exception:
+                  continue
+              msg = ev.get('message') or ''
+              if ev.get('event') != 'message' or not msg or ev.get('attachment'):
+                  continue
+              if nl not in msg:
+                  continue
+              head, body = msg.split(nl, 1)
+              bits = head.split(' ')
+              if len(bits) < 2 or '/' not in bits[1]:
+                  continue
+              a, b = bits[1].split('/', 1)
+              try:
+                  idx = int(a); of = int(b)
+              except Exception:
+                  continue
+              g = groups.setdefault(bits[0], {'of': of, 'parts': {}})
+              g['parts'][idx] = body
+          best = None
+          for g in groups.values():
+              if len(g['parts']) != g['of']:
+                  continue
+              if any(i not in g['parts'] for i in range(1, g['of'] + 1)):
+                  continue
+              raw = ''.join(g['parts'][i] for i in range(1, g['of'] + 1))
+              try:
+                  data = json.loads(raw)
+              except Exception:
+                  continue
+              if isinstance(data, dict) and 'seasons' in data:
+                  if best is None or (data.get('updatedAt') or 0) >= (best.get('updatedAt') or 0):
+                      best = data
+          path = pathlib.Path('eymen-kizilkaya/veri.json')
+          if best is None:
+              print('no data')
+              raise SystemExit(0)
+          old = None
+          if path.exists():
+              try:
+                  old = json.loads(path.read_text())
+              except Exception:
+                  old = None
+          if isinstance(old, dict) and (old.get('updatedAt') or 0) >= (best.get('updatedAt') or 0):
+              print('current')
+              raise SystemExit(0)
+          path.parent.mkdir(parents=True, exist_ok=True)
+          path.write_text(json.dumps(best, ensure_ascii=False))
+          print('updated', best.get('updatedAt'))
+          PY
+      - name: Kaydet
+        run: |
+          git config user.name eymen-sync
+          git config user.email eymen-sync@users.noreply.github.com
+          git add eymen-kizilkaya/veri.json
+          if git diff --cached --quiet; then
+            echo degisiklik-yok
+          else
+            git commit -m Veri
+            git push
+          fi
