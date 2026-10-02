@@ -130,7 +130,9 @@
   #goSeasons { background: #4a4742; color: #ffe9a3; }
   #goMac { background: #e07a32; color: #fff; }
   #goAnt { background: #a68412; color: #241c08; }
-  #goBackup { background: #2c2c2c; color: #f3f3f3; }
+  #teamStatBtn { background: #e07a32; color: #fff; }
+  #eymenStatBtn { background: #2a2a2a; color: #ffe7a0; }
+  #teamStatBox .line, #eymenStatBox .line { background: rgba(255,255,255,.72); color: #2b2418; border-radius: 12px; padding: 12px 14px; margin-top: 8px; font-size: 18px; font-weight: 650; }
   .wrap > section { display: none; }
   body.view-seasons #seasons, body.view-maclar #maclar, body.view-antrenman #antrenman, body.view-backup #backup { display: block; }
   #goHome { display: none; margin-bottom: 12px; background: rgba(255,255,255,.18); color: #fff; }
@@ -158,7 +160,16 @@
   <div class="panel" id="seasons">
     <h2>Sezonlar</h2>
     <div class="years" id="yearCards"></div>
-    <p class="note">Bir Sezona basınca o yılın maç ve antrenman yeri açılır. Yeni Sezon sıfırdan başlar, eski yıl silinmez.</p>
+    <p class="note">Bir Yıla basınca o sezonun istatistiği açılır.</p>
+    <div id="seasonStats" class="hidden">
+      <h2 id="seasonStatsTitle">Sezon İstatistiği</h2>
+      <div class="stat-stack">
+        <button type="button" id="teamStatBtn">Takım İstatistiği</button>
+        <button type="button" id="eymenStatBtn">Bireysel İstatistik</button>
+      </div>
+      <div id="teamStatBox" class="hidden"></div>
+      <div id="eymenStatBox" class="hidden"></div>
+    </div>
     <div class="actions">
       <label>Takım <input id="team" placeholder="Takım Adı"></label>
       <label>Sezon <select id="season"></select></label>
@@ -310,22 +321,58 @@ function renderSeasonSelect() {
   document.getElementById("team").value = state.team || "";
   document.getElementById("subline").textContent = "Açık Sezon: " + state.active + ". Yeni Sezon sıfırdan başlar, eski yıl silinmez.";
   document.getElementById("mTitle").textContent = state.active + " maç girişi".replace("maç girişi", "Maç Girişi");
-  const cards = seasonNames().map(s => {
-    const bag = state.seasons[s];
-    const played = bag.matches.filter(m => m.played !== "hayir").length;
-    const ga = bag.matches.reduce((a, m) => a + (m.played === "hayir" ? 0 : n(m.ga)), 0);
-    const mins = bag.trainings.reduce((a, t) => a + n(t.min), 0);
-    return `<button type="button" class="ghost ${s === state.active ? "on" : ""}" data-year="${esc(s)}">
-      <strong>${esc(s)}</strong><br><span class="note">${bag.matches.length} maç · Eymen ${played} · ${ga} gol yedi · ${mins} dk antrenman</span>
-    </button>`;
-  }).join("");
+  const cards = seasonNames().map(s =>
+    `<button type="button" class="ghost ${s === state.active ? "on" : ""}" data-year="${esc(s)}"><strong>${esc(s)}</strong></button>`
+  ).join("");
   document.getElementById("yearCards").innerHTML = cards;
+  if (!document.getElementById("seasonStats").classList.contains("hidden")) paintSeasonStats();
+}
+function seasonMatches() {
+  const bag = state.seasons[state.active] || blankSeason();
+  return bag.matches || [];
+}
+function paintSeasonStats() {
+  document.getElementById("seasonStatsTitle").textContent = state.active + " Sezon İstatistiği";
+  const all = seasonMatches();
+  const played = all.filter(m => m.played !== "hayir");
+  const sum = (arr, k) => arr.reduce((s, x) => s + n(x[k]), 0);
+  if (!document.getElementById("teamStatBox").classList.contains("hidden")) {
+    const w = all.filter(m => m.result === "Galibiyet").length;
+    const d = all.filter(m => m.result === "Beraberlik").length;
+    const l = all.filter(m => m.result === "Mağlubiyet").length;
+    document.getElementById("teamStatBox").innerHTML =
+      `<div class="line">${w} galibiyet</div><div class="line">${d} beraberlik</div><div class="line">${l} mağlubiyet</div>`;
+  }
+  if (!document.getElementById("eymenStatBox").classList.contains("hidden")) {
+    document.getElementById("eymenStatBox").innerHTML =
+      `<div class="line">Eymen ${played.length} maç oynadı</div>` +
+      `<div class="line">Eymen ${sum(played, "min")} dakika oynadı</div>` +
+      `<div class="line">Eymen ${sum(played, "saves")} kurtarış yaptı</div>` +
+      `<div class="line">Eymen ${sum(played, "ga")} gol yedi</div>` +
+      `<div class="line">Eymen ${sum(played, "ast")} asist yaptı</div>` +
+      `<div class="line">Eymen ${sum(played, "goals")} gol attı</div>`;
+  }
 }
 document.getElementById("yearCards").onclick = (e) => {
   const b = e.target.closest("[data-year]");
   if (!b) return;
   state.active = b.dataset.year;
-  save(); refresh();
+  save();
+  refresh();
+  show("seasonStats", true);
+  show("teamStatBox", false);
+  show("eymenStatBox", false);
+  paintSeasonStats();
+};
+document.getElementById("teamStatBtn").onclick = () => {
+  show("eymenStatBox", false);
+  show("teamStatBox", true);
+  paintSeasonStats();
+};
+document.getElementById("eymenStatBtn").onclick = () => {
+  show("teamStatBox", false);
+  show("eymenStatBox", true);
+  paintSeasonStats();
 };
 document.getElementById("season").onchange = () => {
   state.active = document.getElementById("season").value;
