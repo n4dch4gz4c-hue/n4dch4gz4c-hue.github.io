@@ -115,6 +115,29 @@
   #cloud { font-size: 12px; color: #ffe9a3; min-height: 16px; margin-top: 4px; text-shadow: 0 1px 6px rgba(0,0,0,.65); }
   .pdf-btn { display: block; width: 100%; margin-top: 12px; background: #1f6b4a; color: #fff; font-size: 17px; padding: 14px; border-radius: 14px; }
   .pdf-btn.hidden { display: none; }
+  #pdfReport { position: fixed; left: -2600px; top: 0; width: 820px; background: #f6f1ea; color: #1c140e; font-family: "Segoe UI", sans-serif; }
+  #pdfReport .pdf-head { display: flex; gap: 16px; align-items: center; background: #1c140e; color: #fff; padding: 22px 24px; }
+  #pdfReport .crest { width: 58px; height: 58px; object-fit: contain; }
+  #pdfReport .ava { width: 74px; height: 74px; border-radius: 50%; object-fit: cover; border: 3px solid #e07a32; }
+  #pdfReport .pdf-kicker { color: #f3d27a; letter-spacing: .16em; font-size: 11px; font-weight: 700; }
+  #pdfReport h1 { margin: 2px 0; font-size: 30px; color: #fff; }
+  #pdfReport .pdf-sub { color: #f0e6d6; font-size: 14px; }
+  #pdfReport .pdf-body { padding: 18px 22px 28px; }
+  #pdfReport .pdf-sec { margin: 18px 0 8px; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; font-weight: 750; color: #1c140e; border-left: 4px solid #e07a32; padding-left: 8px; }
+  #pdfReport .pdf-kpis, #pdfReport .pdf-cards { display: flex; flex-wrap: wrap; gap: 8px; }
+  #pdfReport .pdf-kpi, #pdfReport .pdf-card { background: #fff; border-radius: 10px; padding: 10px 8px; text-align: center; box-sizing: border-box; }
+  #pdfReport .pdf-kpi { width: calc(16.66% - 7px); }
+  #pdfReport .pdf-card { width: calc(33.33% - 6px); text-align: left; padding: 12px 14px; }
+  #pdfReport .pdf-kpi b, #pdfReport .pdf-card b { display: block; font-size: 22px; color: #c45a16; }
+  #pdfReport .pdf-kpi span, #pdfReport .pdf-card span { font-size: 11px; color: #6d5d4e; }
+  #pdfReport table.pdf { width: 100%; border-collapse: collapse; background: #fff; font-size: 12px; }
+  #pdfReport table.pdf th { background: #2a211b; color: #f6efe4; text-align: left; padding: 8px 6px; }
+  #pdfReport table.pdf td { padding: 7px 6px; border-bottom: 1px solid #efe7dc; color: #1c140e; }
+  #pdfReport .pdf-win { color: #1b7a43; font-weight: 750; }
+  #pdfReport .pdf-draw { color: #8a6a10; font-weight: 750; }
+  #pdfReport .pdf-loss { color: #a33b2b; font-weight: 750; }
+  #pdfReport .pdf-type { display: flex; justify-content: space-between; align-items: center; border-radius: 10px; padding: 11px 14px; margin-top: 6px; font-size: 14px; font-weight: 700; }
+  #pdfReport .pdf-foot { margin-top: 16px; text-align: right; font-size: 11px; color: #8a7b6c; }
   #maclar > .sec { color: #e07a32; font-size: 26px; margin: 8px 0 12px; }
   #antrenman > .sec { color: #e2c04a; font-size: 26px; margin: 18px 0 12px; }
   #aSumBox .ablock { border-radius: 14px; padding: 14px 16px; margin-top: 8px; }
@@ -953,9 +976,13 @@ function loadScript(src) {
     document.head.appendChild(s);
   });
 }
+function trDate(d) {
+  const p = String(d || "").split("-");
+  return p.length === 3 ? p[2] + "." + p[1] + "." + p[0] : (d || "");
+}
 function reportSheet() {
   const season = state.active || "";
-  const team = state.team || "Takım";
+  const team = state.team || "Ümraniye Spor Kulübü";
   const all = [...(cur().matches || [])].sort((a, b) => (a.date || "").localeCompare(b.date || ""));
   const played = all.filter(m => m.played !== "hayir");
   const sum = (arr, k) => arr.reduce((s, x) => s + n(x[k]), 0);
@@ -971,50 +998,56 @@ function reportSheet() {
   const l = all.filter(m => m.result === "Mağlubiyet").length;
   const trains = [...(cur().trainings || [])].sort((a, b) => (a.date || "").localeCompare(b.date || ""));
   const names = ["Takım Antrenmanı", "Bireysel Antrenman", "Atletik Performans Antrenmanı", "Ev Antrenmanı"];
-  const matchBlocks = all.length ? all.map(m => {
-    const lines = m.played === "hayir"
-      ? `<div style="font-size:16px;padding:3px 0">Bu Maçta Oynamadı</div>`
-      : `<div style="font-size:16px;padding:3px 0">${n(m.min)} Dakika Oynadı</div>` +
-        `<div style="font-size:16px;padding:3px 0">${n(m.goals)} Gol Attı</div>` +
-        `<div style="font-size:16px;padding:3px 0">${n(m.ga)} Gol Yedi</div>` +
-        `<div style="font-size:16px;padding:3px 0">${n(m.ast)} Asist Yaptı</div>` +
-        `<div style="font-size:16px;padding:3px 0">${n(m.saves)} Kurtarış Yaptı</div>`;
-    return `<div style="margin:0 0 12px;padding:8px 0;border-bottom:1px solid #eee"><div style="font-size:13px;color:#666">${esc(m.date || "")}</div><div style="font-size:17px;font-weight:700;margin:2px 0 4px">${esc(matchTitle(m))}</div>${lines}</div>`;
-  }).join("") : `<div style="font-size:16px;padding:3px 0">Bu sezonda maç yok.</div>`;
+  const photo = document.getElementById("avatar").src;
+  const kpi = (num, label) => `<div class="pdf-kpi"><b>${num}</b><span>${label}</span></div>`;
+  const resultClass = (r) => r === "Galibiyet" ? "pdf-win" : r === "Mağlubiyet" ? "pdf-loss" : "pdf-draw";
+  const matchRows = all.length ? all.map(m => {
+    const home = m.team || state.team || "Takım";
+    const p = scoreParts(m.score);
+    const score = p ? p[0] + " - " + p[1] : (m.score || "-");
+    const playedRow = m.played === "hayir";
+    return `<tr><td>${esc(trDate(m.date))}</td><td><b>${esc(home)}</b> ${esc(score)} <b>${esc(m.opp || "Rakip")}</b></td><td>${esc(m.type || "")}</td><td class="${resultClass(m.result)}">${esc(m.result || "")}</td><td>${playedRow ? "—" : n(m.min)}</td><td>${playedRow ? "—" : n(m.goals)}</td><td>${playedRow ? "—" : n(m.ga)}</td><td>${playedRow ? "—" : n(m.ast)}</td><td>${playedRow ? "—" : n(m.saves)}</td></tr>`;
+  }).join("") : `<tr><td colspan="9">Bu sezonda maç yok.</td></tr>`;
+  const cards = [
+    [played.length, "Oynadığı Maç"],
+    [sum(played, "min"), "Dakika"],
+    [sum(played, "saves"), "Kurtarış"],
+    [sum(played, "ga"), "Yediği Gol"],
+    [sum(played, "ast"), "Asist"],
+    [sum(played, "goals"), "Attığı Gol"]
+  ].map(([num, label]) => `<div class="pdf-card"><b>${num}</b><span>${label}</span></div>`).join("");
   const typeBlocks = TYPES.map((type, i) => {
     const xs = trains.filter(t => t.type === type);
     const mins = xs.reduce((s, x) => s + n(x.min), 0);
-    return `<div style="font-size:16px;padding:3px 0">${esc(names[i])}: ${xs.length} antrenman, ${mins} dakika</div>`;
+    return `<div class="pdf-type" style="background:${TONES[i][0]};color:${TONES[i][1]}"><span>${esc(names[i])}</span><span>${xs.length} antrenman · ${mins} dakika</span></div>`;
   }).join("");
-  const trainList = trains.length ? trains.map(t => {
+  const trainRows = trains.length ? trains.map(t => {
     const label = names[Math.max(0, TYPES.indexOf(t.type))] || t.type || "";
-    const note = t.note ? " — " + t.note : "";
-    return `<div style="font-size:16px;padding:3px 0">${esc(t.date || "")} · ${esc(label)} · ${n(t.min)} dakika${esc(note)}</div>`;
-  }).join("") : `<div style="font-size:16px;padding:3px 0">Bu sezonda antrenman yok.</div>`;
-  const h2 = "margin:22px 0 8px;font-size:20px;border-bottom:2px solid #e07a32;padding-bottom:4px";
-  const row = "font-size:16px;padding:3px 0";
+    return `<tr><td>${esc(trDate(t.date))}</td><td>${esc(label)}</td><td>${n(t.min)}</td><td>${esc(t.note || "")}</td></tr>`;
+  }).join("") : `<tr><td colspan="4">Bu sezonda antrenman yok.</td></tr>`;
+  const totalMin = trains.reduce((s, t) => s + n(t.min), 0);
   const host = document.createElement("div");
-  host.style.cssText = "position:fixed;left:0;top:0;width:720px;z-index:-1;background:#fff;color:#1c1c1c;padding:28px 32px 40px;font-family:Segoe UI,sans-serif;";
+  host.id = "pdfReport";
   host.innerHTML =
-    `<h1 style="margin:0;font-size:28px">Eymen Kızılkaya</h1>` +
-    `<p style="margin:6px 0 18px;font-size:16px">${esc(team)} · ${esc(season)} Sezonu</p>` +
-    `<h2 style="${h2}">Maç Sonuçları</h2>${matchBlocks}` +
-    `<h2 style="${h2}">Maç İstatistiği</h2>` +
-    `<div style="${row}">${all.length} Toplam Maç</div>` +
-    `<div style="${row}">${w} Kazanılan Maç</div>` +
-    `<div style="${row}">${l} Kaybedilen Maç</div>` +
-    `<div style="${row}">${d} Beraberlik</div>` +
-    `<div style="${row}">${gf} Atılan Gol</div>` +
-    `<div style="${row}">${ga} Yenilen Gol</div>` +
-    `<h2 style="${h2}">Bireysel İstatistik</h2>` +
-    `<div style="${row}">Eymen ${played.length} maç oynadı</div>` +
-    `<div style="${row}">Eymen ${sum(played, "min")} dakika oynadı</div>` +
-    `<div style="${row}">Eymen ${sum(played, "saves")} kurtarış yaptı</div>` +
-    `<div style="${row}">Eymen ${sum(played, "ga")} gol yedi</div>` +
-    `<div style="${row}">Eymen ${sum(played, "ast")} asist yaptı</div>` +
-    `<div style="${row}">Eymen ${sum(played, "goals")} gol attı</div>` +
-    `<h2 style="${h2}">Antrenman İstatistikleri</h2>${typeBlocks}` +
-    `<h2 style="${h2}">Antrenmanlar</h2>${trainList}`;
+    `<div class="pdf-head">` +
+      `<img class="crest" src="umraniye-arma.png" alt="">` +
+      `<img class="ava" src="${photo}" alt="">` +
+      `<div><div class="pdf-kicker">ÜMRANİYE SPOR KULÜBÜ</div><h1>Eymen Kızılkaya</h1><div class="pdf-sub">Kaleci · ${esc(team)} · ${esc(season)} Sezon Raporu</div></div>` +
+    `</div>` +
+    `<div class="pdf-body">` +
+      `<div class="pdf-sec">Maç İstatistiği</div>` +
+      `<div class="pdf-kpis">${kpi(all.length, "Toplam Maç")}${kpi(w, "Kazanılan")}${kpi(d, "Beraberlik")}${kpi(l, "Kaybedilen")}${kpi(gf, "Atılan Gol")}${kpi(ga, "Yenilen Gol")}</div>` +
+      `<div class="pdf-sec">Maç Sonuçları</div>` +
+      `<table class="pdf"><thead><tr><th>Tarih</th><th>Karşılaşma</th><th>Tür</th><th>Sonuç</th><th>Dk</th><th>Gol</th><th>Yenen</th><th>Asist</th><th>Kurtarış</th></tr></thead><tbody>${matchRows}</tbody></table>` +
+      `<div class="pdf-sec">Bireysel İstatistik</div>` +
+      `<div class="pdf-cards">${cards}</div>` +
+      `<div class="pdf-sec">Antrenman İstatistikleri</div>` +
+      `<div class="pdf-card" style="width:100%;margin-bottom:8px"><b>${trains.length} antrenman</b><span>Toplam ${totalMin} dakika</span></div>` +
+      typeBlocks +
+      `<div class="pdf-sec">Antrenmanlar</div>` +
+      `<table class="pdf"><thead><tr><th>Tarih</th><th>Tür</th><th>Dakika</th><th>Ne Yapıldı</th></tr></thead><tbody>${trainRows}</tbody></table>` +
+      `<div class="pdf-foot">Eymen Kızılkaya · ${esc(season)} · Sezon Raporu</div>` +
+    `</div>`;
   return host;
 }
 async function sharePdf(btn) {
@@ -1027,7 +1060,8 @@ async function sharePdf(btn) {
   try {
     await loadScript("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js");
     await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
-    const sheet = await html2canvas(host, { backgroundColor: "#ffffff", scale: 2, useCORS: true });
+    await Promise.all([...host.querySelectorAll("img")].map(img => img.complete ? null : new Promise(done => { img.onload = img.onerror = done; })));
+    const sheet = await html2canvas(host, { backgroundColor: "#f6f1ea", scale: 2, useCORS: true });
     const pdf = new window.jspdf.jsPDF("p", "pt", "a4");
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
