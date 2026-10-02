@@ -15,7 +15,7 @@
   body {
     margin: 0; min-height: 100vh; font-family: "Segoe UI", system-ui, sans-serif; color: var(--text);
     background:
-      linear-gradient(180deg, rgba(4, 8, 7, .25), rgba(4, 8, 7, .4)),
+      linear-gradient(180deg, rgba(20, 14, 10, .2), rgba(12, 10, 8, .28)),
       url("saha.jpg") center / cover no-repeat fixed;
   }
   header { padding: 20px 22px 6px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: end; }
@@ -53,9 +53,31 @@
   .pill { font-size: 11px; padding: 2px 7px; border-radius: 99px; background: rgba(255,255,255,.12); color: var(--gold); }
   .years { display: flex; gap: 8px; flex-wrap: wrap; }
   .years button.on { outline: 2px solid var(--green); }
+  .wrap > .panel { background: rgba(228, 228, 226, .88); color: #2b2b2b; border-color: rgba(80, 80, 80, .25); }
+  .wrap > .panel h2, .wrap > .panel .note, .wrap > .panel label { color: #3a3a3a; }
+  .wrap > .panel button { color: #2b2b2b; background: rgba(255,255,255,.75); }
+  .tabs button { color: #fff; min-width: 140px; }
+  #tabM { background: rgba(120, 72, 40, .45); border-color: #e07a32; }
+  #tabA { background: rgba(90, 80, 30, .45); border-color: #e2c04a; }
+  #tabM.on { background: #e07a32; color: #fff; border-color: #ffd2ad; }
+  #tabA.on { background: #e2c04a; color: #2c2410; border-color: #fff4c2; }
+  body.mode-mac #maclar .panel { background: rgba(236, 214, 196, .9); border-color: rgba(196, 98, 32, .55); color: #3a2416; }
+  body.mode-mac #maclar h2, body.mode-mac #maclar label, body.mode-mac #maclar .note, body.mode-mac #maclar th { color: #5c4638; }
+  body.mode-mac #maclar .card { background: rgba(255, 244, 232, .75); }
+  body.mode-mac #maclar .card .v, body.mode-mac #maclar td { color: #3a2416; }
+  body.mode-mac #maclar input, body.mode-mac #maclar select, body.mode-mac #maclar button.ghost { color: #3a2416; background: rgba(255, 248, 240, .85); border-color: rgba(160, 90, 40, .35); }
+  body.mode-mac #maclar button:not(.ghost):not(.warn) { background: #e07a32; color: #fff; }
+  body.mode-ant #antrenman .panel { background: rgba(236, 224, 160, .9); border-color: rgba(170, 140, 30, .55); color: #3a3414; }
+  body.mode-ant #antrenman h2, body.mode-ant #antrenman label, body.mode-ant #antrenman .note, body.mode-ant #antrenman th { color: #5c5428; }
+  body.mode-ant #antrenman .card { background: rgba(255, 248, 210, .75); }
+  body.mode-ant #antrenman .card .v, body.mode-ant #antrenman td { color: #3a3414; }
+  body.mode-ant #antrenman input, body.mode-ant #antrenman select, body.mode-ant #antrenman button.ghost { color: #3a3414; background: rgba(255, 252, 230, .88); border-color: rgba(140, 120, 30, .35); }
+  body.mode-ant #antrenman button:not(.ghost):not(.warn) { background: #d4a017; color: #2c2410; }
+  body.mode-ant #antrenman .types button.on { background: #c9a227; color: #2c2410; }
+  canvas { background: rgba(255, 255, 255, .45); }
 </style>
 </head>
-<body>
+<body class="mode-mac">
 <header>
   <div class="who">
     <div class="avatar-wrap">
@@ -263,11 +285,15 @@ document.getElementById("saveProfile").onclick = () => {
 };
 
 document.getElementById("tabM").onclick = () => {
+  document.body.classList.add("mode-mac");
+  document.body.classList.remove("mode-ant");
   document.getElementById("tabM").classList.add("on");
   document.getElementById("tabA").classList.remove("on");
   show("maclar", true); show("antrenman", false);
 };
 document.getElementById("tabA").onclick = () => {
+  document.body.classList.add("mode-ant");
+  document.body.classList.remove("mode-mac");
   document.getElementById("tabA").classList.add("on");
   document.getElementById("tabM").classList.remove("on");
   show("antrenman", true); show("maclar", false);
@@ -441,18 +467,18 @@ function drawBars(id, vals, labels) {
   const ctx = c.getContext("2d");
   const w = c.width, h = c.height;
   ctx.clearRect(0, 0, w, h);
-  if (!vals.length) { ctx.fillStyle = "#f4fff8"; ctx.font = "14px Segoe UI"; ctx.fillText("Veri yok", 20, 40); return; }
+  if (!vals.length) { ctx.fillStyle = "#3a3414"; ctx.font = "14px Segoe UI"; ctx.fillText("Veri yok", 20, 40); return; }
   const max = Math.max(1, ...vals);
   const pad = 36;
   const bw = Math.min(70, (w - pad - 10) / vals.length - 12);
   vals.forEach((v, i) => {
     const x = pad + i * ((w - pad - 8) / vals.length);
     const bh = (v / max) * (h - 58);
-    ctx.fillStyle = "#1c7a52";
+    ctx.fillStyle = "#c9a227";
     ctx.fillRect(x, h - 28 - bh, bw, bh);
-    ctx.fillStyle = "#e9f3ec"; ctx.font = "12px Segoe UI";
+    ctx.fillStyle = "#3a3414"; ctx.font = "12px Segoe UI";
     ctx.fillText(String(v), x, h - 32 - bh);
-    ctx.fillStyle = "#f4fff8";
+    ctx.fillStyle = "#3a3414";
     ctx.fillText(String(labels[i] || "").slice(0, 12), x, h - 10);
   });
 }
