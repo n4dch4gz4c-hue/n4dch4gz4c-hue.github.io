@@ -77,67 +77,52 @@
   #tabA { background: rgba(90, 80, 30, .45); border-color: #e2c04a; }
   #tabM.on { background: #e07a32; color: #fff; border-color: #ffd2ad; }
   #tabA.on { background: #e2c04a; color: #2c2410; border-color: #fff4c2; }
-  body.mode-mac #maclar .panel { background: rgba(236, 214, 196, .9); border-color: rgba(196, 98, 32, .55); color: #3a2416; }
-  body.mode-mac #maclar h2, body.mode-mac #maclar label, body.mode-mac #maclar .note, body.mode-mac #maclar th { color: #5c4638; }
-  body.mode-mac #maclar .card { background: rgba(255, 244, 232, .75); }
-  body.mode-mac #maclar .card .v, body.mode-mac #maclar td { color: #3a2416; }
-  body.mode-mac #maclar input, body.mode-mac #maclar select, body.mode-mac #maclar button.ghost { color: #3a2416; background: rgba(255, 248, 240, .85); border-color: rgba(160, 90, 40, .35); }
-  body.mode-mac #maclar button:not(.ghost):not(.warn) { background: #e07a32; color: #fff; }
-  body.mode-ant #antrenman .panel { background: rgba(236, 224, 160, .9); border-color: rgba(170, 140, 30, .55); color: #3a3414; }
-  body.mode-ant #antrenman h2, body.mode-ant #antrenman label, body.mode-ant #antrenman .note, body.mode-ant #antrenman th { color: #5c5428; }
-  body.mode-ant #antrenman .card { background: rgba(255, 248, 210, .75); }
-  body.mode-ant #antrenman .card .v, body.mode-ant #antrenman td { color: #3a3414; }
-  body.mode-ant #antrenman input, body.mode-ant #antrenman select, body.mode-ant #antrenman button.ghost { color: #3a3414; background: rgba(255, 252, 230, .88); border-color: rgba(140, 120, 30, .35); }
-  body.mode-ant #antrenman button:not(.ghost):not(.warn) { background: #d4a017; color: #2c2410; }
-  body.mode-ant #antrenman .types button.on { background: #c9a227; color: #2c2410; }
+  #maclar .panel { background: rgba(236, 214, 196, .9); border-color: rgba(196, 98, 32, .55); color: #3a2416; }
+  #maclar h2, #maclar label, #maclar .note, #maclar th { color: #5c4638; }
+  #maclar .card { background: rgba(255, 244, 232, .75); }
+  #maclar .card .v, #maclar td { color: #3a2416; }
+  #maclar input, #maclar select, #maclar button.ghost { color: #3a2416; background: rgba(255, 248, 240, .85); border-color: rgba(160, 90, 40, .35); }
+  #maclar button:not(.ghost):not(.warn) { background: #e07a32; color: #fff; }
+  #antrenman .panel { background: rgba(236, 224, 160, .9); border-color: rgba(170, 140, 30, .55); color: #3a3414; }
+  #antrenman h2, #antrenman label, #antrenman .note, #antrenman th { color: #5c5428; }
+  #antrenman .card { background: rgba(255, 248, 210, .75); }
+  #antrenman .card .v, #antrenman td { color: #3a3414; }
+  #antrenman input, #antrenman select, #antrenman button.ghost { color: #3a3414; background: rgba(255, 252, 230, .88); border-color: rgba(140, 120, 30, .35); }
+  #antrenman button:not(.ghost):not(.warn) { background: #d4a017; color: #2c2410; }
+  #antrenman .types button.on { background: #c9a227; color: #2c2410; }
   canvas { background: rgba(255, 255, 255, .45); }
+  .top { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 28px 16px 8px; }
+  .top h1 { margin: 8px 0 0; font-size: 34px; text-shadow: 0 2px 12px rgba(0,0,0,.45); }
+  .top .sub { text-shadow: 0 1px 8px rgba(0,0,0,.55); }
+  .top .avatar-change { color: #fff; }
+  #maclar > .sec { color: #e07a32; font-size: 26px; margin: 8px 0 12px; }
+  #antrenman > .sec { color: #e2c04a; font-size: 26px; margin: 18px 0 12px; }
 </style>
 </head>
-<body class="view-home">
-<div id="home">
+<body>
+<div class="top">
   <img class="hero" id="avatar" src="eymen-profil.jpg" alt="Eymen Kızılkaya">
   <label class="avatar-change">Fotoğrafı Değiştir
     <input type="file" id="avatarFile" accept="image/*">
   </label>
   <h1>Eymen Kızılkaya</h1>
-  <div class="doors">
-    <button type="button" id="goMac">Maçlar</button>
-    <button type="button" id="goAnt">Antrenman</button>
-  </div>
-  <button type="button" id="homeStatsBtn">Maç İstatistikleri</button>
-  <div id="homeOpen"></div>
+  <div class="sub" id="subline">Her Sezon ayrı durur. Yeni Sezon sıfırdan başlar, eski yıl silinmez.</div>
 </div>
-<header>
-  <div class="who">
-    <div>
-    <h1>Eymen Kızılkaya</h1>
-    <div class="sub" id="subline">Her Sezon ayrı durur. Yeni Sezon sıfırdan başlar, eski yıl silinmez.</div>
-    </div>
-  </div>
-  <div class="actions" style="margin:0">
-    <label>Takım <input id="team" placeholder="Takım Adı"></label>
-    <label>Sezon
-      <select id="season"></select>
-    </label>
-    <button class="ghost" id="newSeason">Yeni Sezon başlat</button>
-    <button class="ghost" id="saveProfile">Takımı Kaydet</button>
-    <button class="ghost" id="export">Yedek İndir</button>
-    <label>Yedek Yükle <input type="file" id="import" accept="application/json"></label>
-  </div>
-</header>
 <div class="wrap">
-  <button type="button" class="ghost" id="goHome">Ana Ekran</button>
   <div class="panel">
-    <h2>Yıllar</h2>
+    <h2>Sezonlar</h2>
     <div class="years" id="yearCards"></div>
-    <p class="note">Bir Yıla basınca o sezonun maç ve antrenmanı açılır. Yeni Sezon, eskisini arşivler ve boş sayfa açar.</p>
-  </div>
-  <div class="tabs">
-    <button id="tabM" class="on">Maçlar</button>
-    <button id="tabA">Antrenman</button>
+    <p class="note">Bir Sezona basınca o yılın maç ve antrenman yeri açılır. Yeni Sezon sıfırdan başlar, eski yıl silinmez.</p>
+    <div class="actions">
+      <label>Takım <input id="team" placeholder="Takım Adı"></label>
+      <label>Sezon <select id="season"></select></label>
+      <button class="ghost" id="newSeason">Yeni Sezon başlat</button>
+      <button class="ghost" id="saveProfile">Takımı Kaydet</button>
+    </div>
   </div>
 
   <section id="maclar">
+    <h2 class="sec">Maçlar</h2>
     <div class="panel">
       <h2 id="mTitle">Maç Girişi</h2>
       <div class="formgrid">
@@ -174,7 +159,8 @@
     <div class="panel"><h2>Bu Sezonun maçları</h2><div id="mTable"></div></div>
   </section>
 
-  <section id="antrenman" class="hidden">
+  <section id="antrenman">
+    <h2 class="sec">Antrenman</h2>
     <div class="panel">
       <h2>Antrenman Girişi</h2>
       <div class="types" id="typeBtns"></div>
@@ -209,6 +195,15 @@
     </div>
     <div class="panel"><h2>Bu Sezonun antrenmanları</h2><div id="aTable"></div></div>
   </section>
+
+  <div class="panel" id="backup">
+    <h2>Kaydedilmiş Verileri Al</h2>
+    <p class="note">Kayıtlı dosyayı buradan indirir veya geri yüklersin. Sezonlar, maçlar ve antrenmanlar bu dosyadadır.</p>
+    <div class="actions">
+      <button class="ghost" id="export">Yedek İndir</button>
+      <label>Yedek Yükle <input type="file" id="import" accept="application/json"></label>
+    </div>
+  </div>
 </div>
 <script>
 const KEY = "eymen-kaleci-v2";
@@ -307,58 +302,6 @@ document.getElementById("saveProfile").onclick = () => {
   state.team = document.getElementById("team").value.trim();
   save(); refresh();
 };
-
-function enterMac() {
-  document.body.className = "mode-mac";
-  document.getElementById("tabM").classList.add("on");
-  document.getElementById("tabA").classList.remove("on");
-  show("maclar", true); show("antrenman", false);
-}
-function enterAnt() {
-  document.body.className = "mode-ant";
-  document.getElementById("tabA").classList.add("on");
-  document.getElementById("tabM").classList.remove("on");
-  show("antrenman", true); show("maclar", false);
-  renderA();
-}
-document.getElementById("goMac").onclick = enterMac;
-document.getElementById("goAnt").onclick = enterAnt;
-document.getElementById("goHome").onclick = () => { document.body.className = "view-home"; };
-let homeTimer = null;
-document.getElementById("homeStatsBtn").onclick = () => {
-  if (homeTimer) { clearInterval(homeTimer); homeTimer = null; }
-  const box = document.getElementById("homeOpen");
-  box.innerHTML = "";
-  const all = cur().matches.slice().sort((a, b) => (b.date || "").localeCompare(a.date || ""));
-  const played = all.filter(m => m.played !== "hayir");
-  const sum = (arr, k) => arr.reduce((s, x) => s + n(x[k]), 0);
-  const cards = [
-    ["Sezon", state.active],
-    ["Toplam Maç", all.length],
-    ["Kazanılan", all.filter(m => m.result === "Galibiyet").length],
-    ["Beraberlik", all.filter(m => m.result === "Beraberlik").length],
-    ["Yenilen", all.filter(m => m.result === "Mağlubiyet").length],
-    ["Eymen Oynadığı", played.length],
-    ["Eymen Dakika", sum(played, "min")],
-    ["Eymen Attığı gol", sum(played, "goals")],
-    ["Eymen Yediği gol", sum(played, "ga")],
-    ["Asist", sum(played, "ast")],
-    ["Kurtarış", sum(played, "saves")]
-  ];
-  const bits = cards.map(([k, v]) => `<div class="card home-bit"><div class="k">${esc(String(k))}</div><div class="v">${esc(String(v))}</div></div>`);
-  const rows = all.map(m => `<div class="card home-bit"><div class="k">${esc(m.date)} · ${esc(m.type)}</div><div class="v" style="font-size:18px">${esc(m.team)} ${esc(m.score)} ${esc(m.opp)}</div><div class="note">${esc(m.result)} · ${m.played === "hayir" ? "Oynamadı" : esc(String(m.min)) + " dk"} · Gol ${esc(String(m.goals))} · Yediği ${esc(String(m.ga))} · Asist ${esc(String(m.ast))} · Kurtarış ${esc(String(m.saves))}</div></div>`);
-  const items = bits.concat(rows);
-  let i = 0;
-  homeTimer = setInterval(() => {
-    if (i >= items.length) { clearInterval(homeTimer); homeTimer = null; return; }
-    box.insertAdjacentHTML("beforeend", items[i]);
-    const last = box.lastElementChild;
-    if (last) last.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    i += 1;
-  }, 320);
-};
-document.getElementById("tabM").onclick = enterMac;
-document.getElementById("tabA").onclick = enterAnt;
 
 function renderTypes() {
   document.getElementById("typeBtns").innerHTML = TYPES.map(t =>
