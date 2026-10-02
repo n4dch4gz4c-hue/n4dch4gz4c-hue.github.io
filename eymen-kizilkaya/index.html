@@ -116,6 +116,7 @@
   .pdf-btn { display: block; width: 100%; margin-top: 12px; background: #1f6b4a; color: #fff; font-size: 17px; padding: 14px; border-radius: 14px; }
   .pdf-btn.hidden { display: none; }
   #pdfReport { position: fixed; left: -2600px; top: 0; width: 820px; background: #f6f1ea; color: #1c140e; font-family: "Segoe UI", sans-serif; }
+  #pdfReport .pdf-chunk { width: 820px; }
   #pdfReport .pdf-head { display: flex; gap: 16px; align-items: center; background: #1c140e; color: #fff; padding: 22px 24px; }
   #pdfReport .crest { width: 58px; height: 58px; object-fit: contain; }
   #pdfReport .ava { width: 74px; height: 74px; border-radius: 50%; object-fit: cover; border: 3px solid #e07a32; }
@@ -130,7 +131,7 @@
   #pdfReport .pdf-card { width: calc(33.33% - 6px); text-align: left; padding: 12px 14px; }
   #pdfReport .pdf-kpi b, #pdfReport .pdf-card b { display: block; font-size: 22px; color: #c45a16; }
   #pdfReport .pdf-kpi span, #pdfReport .pdf-card span { font-size: 11px; color: #6d5d4e; }
-  #pdfReport table.pdf { width: 100%; border-collapse: collapse; background: #fff; font-size: 12px; }
+  #pdfReport table.pdf { width: 100%; border-collapse: collapse; table-layout: fixed; background: #fff; font-size: 12px; margin: 0; }
   #pdfReport table.pdf th { background: #2a211b; color: #f6efe4; text-align: left; padding: 8px 6px; }
   #pdfReport table.pdf td { padding: 7px 6px; border-bottom: 1px solid #efe7dc; color: #1c140e; }
   #pdfReport .pdf-win { color: #1b7a43; font-weight: 750; }
@@ -1026,28 +1027,36 @@ function reportSheet() {
     return `<tr><td>${esc(trDate(t.date))}</td><td>${esc(label)}</td><td>${n(t.min)}</td><td>${esc(t.note || "")}</td></tr>`;
   }).join("") : `<tr><td colspan="4">Bu sezonda antrenman yok.</td></tr>`;
   const totalMin = trains.reduce((s, t) => s + n(t.min), 0);
+  const cols9 = "<colgroup><col style=\"width:11%\"><col style=\"width:27%\"><col style=\"width:11%\"><col style=\"width:12%\"><col style=\"width:7%\"><col style=\"width:7%\"><col style=\"width:8%\"><col style=\"width:8%\"><col style=\"width:9%\"></colgroup>";
+  const cols4 = "<colgroup><col style=\"width:16%\"><col style=\"width:28%\"><col style=\"width:12%\"><col style=\"width:44%\"></colgroup>";
+  const chunk = (html, extra) => `<div class="pdf-chunk"${extra || ""}>${html}</div>`;
+  const matchHead = chunk(`<table class="pdf">${cols9}<thead><tr><th>Tarih</th><th>Karşılaşma</th><th>Tür</th><th>Sonuç</th><th>Dk</th><th>Gol</th><th>Yenen</th><th>Asist</th><th>Kurtarış</th></tr></thead></table>`, " data-repeat=\"1\" data-gap=\"0\" data-bg=\"#2a211b\"");
+  const matchBody = all.length ? all.map(m => {
+    const home = m.team || state.team || "Takım";
+    const p = scoreParts(m.score);
+    const score = p ? p[0] + " - " + p[1] : (m.score || "-");
+    const playedRow = m.played === "hayir";
+    const tr = `<tr><td>${esc(trDate(m.date))}</td><td><b>${esc(home)}</b> ${esc(score)} <b>${esc(m.opp || "Rakip")}</b></td><td>${esc(m.type || "")}</td><td class="${resultClass(m.result)}">${esc(m.result || "")}</td><td>${playedRow ? "—" : n(m.min)}</td><td>${playedRow ? "—" : n(m.goals)}</td><td>${playedRow ? "—" : n(m.ga)}</td><td>${playedRow ? "—" : n(m.ast)}</td><td>${playedRow ? "—" : n(m.saves)}</td></tr>`;
+    return chunk(`<table class="pdf">${cols9}<tbody>${tr}</tbody></table>`, " data-gap=\"0\" data-bg=\"#ffffff\"");
+  }).join("") : chunk(`<div class="pdf-card" style="width:100%">Bu sezonda maç yok.</div>`);
+  const trainHead = chunk(`<table class="pdf">${cols4}<thead><tr><th>Tarih</th><th>Tür</th><th>Dakika</th><th>Ne Yapıldı</th></tr></thead></table>`, " data-repeat=\"1\" data-gap=\"0\" data-bg=\"#2a211b\"");
+  const trainBody = trains.length ? trains.map(t => {
+    const label = names[Math.max(0, TYPES.indexOf(t.type))] || t.type || "";
+    const tr = `<tr><td>${esc(trDate(t.date))}</td><td>${esc(label)}</td><td>${n(t.min)}</td><td>${esc(t.note || "")}</td></tr>`;
+    return chunk(`<table class="pdf">${cols4}<tbody>${tr}</tbody></table>`, " data-gap=\"0\" data-bg=\"#ffffff\"");
+  }).join("") : chunk(`<div class="pdf-card" style="width:100%">Bu sezonda antrenman yok.</div>`);
   const host = document.createElement("div");
   host.id = "pdfReport";
   host.innerHTML =
-    `<div class="pdf-head">` +
-      `<img class="crest" src="umraniye-arma.png" alt="">` +
-      `<img class="ava" src="${photo}" alt="">` +
-      `<div><div class="pdf-kicker">ÜMRANİYE SPOR KULÜBÜ</div><h1>Eymen Kızılkaya</h1><div class="pdf-sub">Kaleci · ${esc(team)} · ${esc(season)} Sezon Raporu</div></div>` +
-    `</div>` +
-    `<div class="pdf-body">` +
-      `<div class="pdf-sec">Maç İstatistiği</div>` +
-      `<div class="pdf-kpis">${kpi(all.length, "Toplam Maç")}${kpi(w, "Kazanılan")}${kpi(d, "Beraberlik")}${kpi(l, "Kaybedilen")}${kpi(gf, "Atılan Gol")}${kpi(ga, "Yenilen Gol")}</div>` +
-      `<div class="pdf-sec">Maç Sonuçları</div>` +
-      `<table class="pdf"><thead><tr><th>Tarih</th><th>Karşılaşma</th><th>Tür</th><th>Sonuç</th><th>Dk</th><th>Gol</th><th>Yenen</th><th>Asist</th><th>Kurtarış</th></tr></thead><tbody>${matchRows}</tbody></table>` +
-      `<div class="pdf-sec">Bireysel İstatistik</div>` +
-      `<div class="pdf-cards">${cards}</div>` +
-      `<div class="pdf-sec">Antrenman İstatistikleri</div>` +
-      `<div class="pdf-card" style="width:100%;margin-bottom:8px"><b>${trains.length} antrenman</b><span>Toplam ${totalMin} dakika</span></div>` +
-      typeBlocks +
-      `<div class="pdf-sec">Antrenmanlar</div>` +
-      `<table class="pdf"><thead><tr><th>Tarih</th><th>Tür</th><th>Dakika</th><th>Ne Yapıldı</th></tr></thead><tbody>${trainRows}</tbody></table>` +
-      `<div class="pdf-foot">Eymen Kızılkaya · ${esc(season)} · Sezon Raporu</div>` +
-    `</div>`;
+    chunk(`<div class="pdf-head"><img class="crest" src="umraniye-arma.png" alt=""><img class="ava" src="${photo}" alt=""><div><div class="pdf-kicker">ÜMRANİYE SPOR KULÜBÜ</div><h1>Eymen Kızılkaya</h1><div class="pdf-sub">Kaleci · ${esc(team)} · ${esc(season)} Sezon Raporu</div></div></div>`, " data-bg=\"#1c140e\"") +
+    chunk(`<div class="pdf-sec">Maç İstatistiği</div><div class="pdf-kpis">${kpi(all.length, "Toplam Maç")}${kpi(w, "Kazanılan")}${kpi(d, "Beraberlik")}${kpi(l, "Kaybedilen")}${kpi(gf, "Atılan Gol")}${kpi(ga, "Yenilen Gol")}</div>`, " data-fresh=\"1\"") +
+    chunk(`<div class="pdf-sec">Maç Sonuçları</div>`, " data-fresh=\"1\" data-keep=\"1\"") +
+    matchHead + matchBody +
+    chunk(`<div class="pdf-sec">Bireysel İstatistik</div><div class="pdf-cards">${cards}</div>`, " data-fresh=\"1\"") +
+    chunk(`<div class="pdf-sec">Antrenman İstatistikleri</div><div class="pdf-card" style="width:100%;margin-bottom:8px"><b>${trains.length} antrenman</b><span>Toplam ${totalMin} dakika</span></div>${typeBlocks}`, " data-fresh=\"1\"") +
+    chunk(`<div class="pdf-sec">Antrenmanlar</div>`, " data-fresh=\"1\" data-keep=\"1\"") +
+    trainHead + trainBody +
+    chunk(`<div class="pdf-foot">Eymen Kızılkaya · ${esc(season)} · Sezon Raporu</div>`);
   return host;
 }
 async function sharePdf(btn) {
@@ -1061,23 +1070,49 @@ async function sharePdf(btn) {
     await loadScript("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js");
     await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
     await Promise.all([...host.querySelectorAll("img")].map(img => img.complete ? null : new Promise(done => { img.onload = img.onerror = done; })));
-    const sheet = await html2canvas(host, { backgroundColor: "#f6f1ea", scale: 2, useCORS: true });
     const pdf = new window.jspdf.jsPDF("p", "pt", "a4");
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
     const margin = 28;
     const imgW = pageW - margin * 2;
-    const imgH = sheet.height * imgW / sheet.width;
-    const img = sheet.toDataURL("image/jpeg", 0.92);
-    let position = margin;
-    pdf.addImage(img, "JPEG", margin, position, imgW, imgH);
-    let left = imgH - (pageH - margin);
-    while (left > 0) {
-      position = margin - (imgH - left);
-      pdf.addPage();
-      pdf.addImage(img, "JPEG", margin, position, imgW, imgH);
-      left -= pageH - margin;
+    const pieces = [];
+    for (const el of host.querySelectorAll(".pdf-chunk")) {
+      const bg = el.dataset.bg || "#f6f1ea";
+      const canvas = await html2canvas(el, { backgroundColor: bg, scale: 2, useCORS: true });
+      pieces.push({
+        h: canvas.height * imgW / canvas.width,
+        img: canvas.toDataURL("image/jpeg", 0.92),
+        repeat: el.dataset.repeat === "1",
+        fresh: el.dataset.fresh === "1",
+        keep: el.dataset.keep === "1",
+        gap: el.dataset.gap === "0" ? 0 : 8
+      });
     }
+    const paint = () => {
+      pdf.setFillColor(246, 241, 234);
+      pdf.rect(0, 0, pageW, pageH, "F");
+    };
+    paint();
+    let y = margin;
+    let repeater = null;
+    const newPage = () => {
+      pdf.addPage();
+      paint();
+      y = margin;
+      if (repeater) {
+        pdf.addImage(repeater.img, "JPEG", margin, y, imgW, repeater.h);
+        y += repeater.h;
+      }
+    };
+    pieces.forEach((p, i) => {
+      if (p.fresh) repeater = null;
+      let need = p.h + p.gap;
+      if (p.keep && pieces[i + 1]) need += pieces[i + 1].h;
+      if (y > margin && y + need > pageH - margin) newPage();
+      pdf.addImage(p.img, "JPEG", margin, y, imgW, p.h);
+      y += p.h + p.gap;
+      if (p.repeat) repeater = p;
+    });
     const blob = pdf.output("blob");
     const file = new File([blob], title + ".pdf", { type: "application/pdf" });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
