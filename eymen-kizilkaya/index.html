@@ -96,7 +96,12 @@
   #antrenman .card { background: rgba(255, 248, 210, .75); }
   #antrenman .card .v, #antrenman td { color: #3a3414; }
   #antrenman input, #antrenman select, #antrenman button.ghost { color: #3a3414; background: rgba(255, 252, 230, .88); border-color: rgba(140, 120, 30, .35); }
-  #antrenman button:not(.ghost):not(.warn) { background: #d4a017; color: #2c2410; }
+  #antrenman button:not(.ghost):not(.warn):not(.tone) { background: #d4a017; color: #2c2410; }
+  #typeBtns button.tone { border: none; }
+  #typeBtns button.t0 { background: #6b4f08; color: #fff4c8; }
+  #typeBtns button.t1 { background: #242424; color: #f4f4f4; }
+  #typeBtns button.t2 { background: #c6a318; color: #1c1604; }
+  #typeBtns button.t3 { background: #4d4d4d; color: #ffe7a0; }
   #typeBtns { flex-direction: column; align-items: stretch; }
   #aCards { grid-template-columns: 1fr; }
   #typeBtns button { width: 100%; text-align: left; font-size: 16px; padding: 14px 16px; border-radius: 12px; }
@@ -254,10 +259,10 @@ const KEY = "eymen-kaleci-v2";
 const OLD = "eymen-kaleci-v1";
 const TYPES = ["Takım antrenmanı", "Bireysel antrenman", "Atletik performans antrenmanı", "Ev antrenmanı"];
 const TONES = [
-  ["#7a5c10", "#fff4cc"],
-  ["#2c2c2c", "#f3f3f3"],
-  ["#a68412", "#241c08"],
-  ["#4a4742", "#ffe9a3"]
+  ["#6b4f08", "#fff4c8"],
+  ["#242424", "#f4f4f4"],
+  ["#c6a318", "#1c1604"],
+  ["#4d4d4d", "#ffe7a0"]
 ];
 let state = load();
 let mEdit = null, aEdit = null, aFilter = TYPES[0];
@@ -366,7 +371,7 @@ document.getElementById("goHome").onclick = () => openView("");
 
 function renderTypes() {
   document.getElementById("typeBtns").innerHTML = TYPES.map((t, i) =>
-    `<button type="button" class="${t === aFilter ? "on" : ""}" data-type="${esc(t)}" style="background:${TONES[i][0]};color:${TONES[i][1]}">${t}</button>`).join("");
+    `<button type="button" class="tone t${i}${t === aFilter ? " on" : ""}" data-type="${esc(t)}">${t}</button>`).join("");
   document.getElementById("cmpType").innerHTML = TYPES.map(t => `<option>${t}</option>`).join("");
 }
 document.getElementById("typeBtns").onclick = (e) => {
