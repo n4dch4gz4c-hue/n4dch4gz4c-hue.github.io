@@ -14,13 +14,18 @@
   * { box-sizing: border-box; }
   body {
     margin: 0; min-height: 100vh; font-family: "Segoe UI", system-ui, sans-serif; color: var(--text);
-    background-color: #6e121c;
-    background-image: linear-gradient(180deg, rgba(40, 8, 12, .2), rgba(20, 6, 8, .35)), url("umraniye-arma.png");
-    background-repeat: no-repeat;
-    background-position: center, center 36px;
-    background-size: auto, min(420px, 68vw);
-    background-attachment: fixed;
+    background: #5c1018;
   }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: url("umraniye-arma.png") center 6vh / min(640px, 82vw) no-repeat;
+    opacity: .42;
+    pointer-events: none;
+    z-index: 0;
+  }
+  body > * { position: relative; z-index: 1; }
   header { padding: 20px 22px 6px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: end; }
   .who { display: flex; gap: 14px; align-items: center; }
   .avatar { width: 76px; height: 76px; border-radius: 50%; object-fit: cover; object-position: center 18%; border: 2px solid var(--green); background: transparent; }
