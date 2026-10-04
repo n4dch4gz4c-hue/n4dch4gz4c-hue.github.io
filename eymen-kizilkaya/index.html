@@ -1079,7 +1079,7 @@ function reportSheet() {
   const host = document.createElement("div");
   host.id = "pdfReport";
   host.innerHTML =
-    chunk(`<div class="pdf-head"><div class="pdf-team"><img class="crest" src="umraniye-arma.png" alt=""><div><div class="pdf-kicker">TAKIM</div><h1>${esc(team)}</h1><div class="pdf-sub">Ümraniye Spor Kulübü<br>${esc(season)} Sezonu</div></div></div><div class="pdf-person"><img class="ava" src="${photo}" alt=""><div><div class="who">OYUNCU KARTI</div><h2>Eymen Kızılkaya</h2><div class="role">Kaleci</div><div class="pdf-sub" style="color:#6d5d4e">${esc(season)} sezonu</div></div></div></div>`, " data-bg=\"#1c140e\"") +
+    chunk(`<div class="pdf-head"><div class="pdf-team"><img class="crest" src="umraniye-kart.jpg" alt=""><div><div class="pdf-kicker">TAKIM</div><h1>${esc(team)}</h1><div class="pdf-sub">Ümraniye Spor Kulübü<br>${esc(season)} Sezonu</div></div></div><div class="pdf-person"><img class="ava" src="${photo}" alt=""><div><div class="who">OYUNCU KARTI</div><h2>Eymen Kızılkaya</h2><div class="role">Kaleci</div><div class="pdf-sub" style="color:#6d5d4e">${esc(season)} sezonu</div></div></div></div>`, " data-bg=\"#1c140e\"") +
     chunk(`<div class="pdf-sec">Maç İstatistiği</div><div class="pdf-kpis">${kpi(all.length, "Toplam Maç")}${kpi(w, "Kazanılan")}${kpi(d, "Beraberlik")}${kpi(l, "Kaybedilen")}${kpi(gf, "Atılan Gol")}${kpi(ga, "Yenilen Gol")}</div>`, " data-fresh=\"1\"") +
     chunk(`<div class="pdf-sec">Maç Sonuçları</div>`, " data-fresh=\"1\" data-keep=\"1\"") +
     matchHead + matchBody +
