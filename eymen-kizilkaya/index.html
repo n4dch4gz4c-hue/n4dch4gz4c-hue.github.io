@@ -145,6 +145,10 @@
   #pdfReport .pdf-loss { color: #a33b2b; font-weight: 750; }
   #pdfReport .pdf-type { display: flex; justify-content: space-between; align-items: center; border-radius: 10px; padding: 11px 14px; margin-top: 6px; font-size: 14px; font-weight: 700; }
   #pdfReport .pdf-foot { margin-top: 16px; text-align: right; font-size: 11px; color: #8a7b6c; }
+  #pdfReport .pdf-pass { width: 100%; background: #fff; border-radius: 10px; margin-top: 8px; }
+  #pdfReport .pdf-pass-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #efe7dc; font-size: 16px; font-weight: 700; color: #1c140e; }
+  #pdfReport .pdf-pass-row:last-child { border-bottom: none; }
+  #pdfReport .pdf-pass-row b { color: #c45a16; font-size: 22px; }
   #maclar > .sec { color: #e07a32; font-size: 26px; margin: 8px 0 12px; }
   #antrenman > .sec { color: #e2c04a; font-size: 26px; margin: 18px 0 12px; }
   #aSumBox .ablock { border-radius: 14px; padding: 14px 16px; margin-top: 8px; }
@@ -702,6 +706,12 @@ function passRate(ok, att) {
   if (ok > att) ok = att;
   return ok + "/" + att + " (%" + Math.round(ok / att * 100) + " isabet)";
 }
+function passPct(ok, att) {
+  att = n(att); ok = n(ok);
+  if (att <= 0) return "—";
+  if (ok > att) ok = att;
+  return "%" + Math.round(ok / att * 100);
+}
 function readMatch() {
   return {
     id: mEdit || Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
@@ -1044,10 +1054,9 @@ function reportSheet() {
     [sum(played, "saves"), "Kurtarış"],
     [sum(played, "ga"), "Yediği Gol"],
     [sum(played, "ast"), "Asist"],
-    [sum(played, "goals"), "Attığı Gol"],
-    [passRate(sum(played, "passOk"), sum(played, "pass")), "Pas"],
-    [passRate(sum(played, "longOk"), sum(played, "long")), "Uzun pas"]
+    [sum(played, "goals"), "Attığı Gol"]
   ].map(([num, label]) => `<div class="pdf-card"><b>${num}</b><span>${label}</span></div>`).join("");
+  const passBox = `<div class="pdf-pass"><div class="pdf-pass-row"><span>Pas</span><b>${passPct(sum(played, "passOk"), sum(played, "pass"))}</b></div><div class="pdf-pass-row"><span>Uzun pas</span><b>${passPct(sum(played, "longOk"), sum(played, "long"))}</b></div></div>`;
   const typeBlocks = TYPES.map((type, i) => {
     const xs = trains.filter(t => t.type === type);
     const mins = xs.reduce((s, x) => s + n(x.min), 0);
@@ -1083,7 +1092,7 @@ function reportSheet() {
     chunk(`<div class="pdf-sec">Maç İstatistiği</div><div class="pdf-kpis">${kpi(all.length, "Toplam Maç")}${kpi(w, "Kazanılan")}${kpi(d, "Beraberlik")}${kpi(l, "Kaybedilen")}${kpi(gf, "Atılan Gol")}${kpi(ga, "Yenilen Gol")}</div>`, " data-fresh=\"1\"") +
     chunk(`<div class="pdf-sec">Maç Sonuçları</div>`, " data-fresh=\"1\" data-keep=\"1\"") +
     matchHead + matchBody +
-    chunk(`<div class="pdf-sec">Bireysel İstatistik</div><div class="pdf-cards">${cards}</div>`, " data-fresh=\"1\"") +
+    chunk(`<div class="pdf-sec">Bireysel İstatistik</div><div class="pdf-cards">${cards}</div>${passBox}`, " data-fresh=\"1\"") +
     chunk(`<div class="pdf-sec">Antrenman İstatistikleri</div><div class="pdf-card" style="width:100%;margin-bottom:8px"><b>${trains.length} antrenman</b><span>Toplam ${totalMin} dakika</span></div>${typeBlocks}`, " data-fresh=\"1\"") +
     chunk(`<div class="pdf-sec">Antrenmanlar</div>`, " data-fresh=\"1\" data-keep=\"1\"") +
     trainHead + trainBody +
