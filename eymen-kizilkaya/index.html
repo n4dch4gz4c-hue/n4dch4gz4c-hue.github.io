@@ -249,6 +249,10 @@
         <label>Yediği Gol <input type="number" id="mGA" min="0" value="0"></label>
         <label>Asist <input type="number" id="mAst" min="0" value="0"></label>
         <label>Kurtarış <input type="number" id="mSaves" min="0" value="0"></label>
+        <label>Pas deneme <input type="number" id="mPass" min="0" value="0"></label>
+        <label>Pas isabet <input type="number" id="mPassOk" min="0" value="0"></label>
+        <label>Uzun pas deneme <input type="number" id="mLong" min="0" value="0"></label>
+        <label>Uzun pas isabet <input type="number" id="mLongOk" min="0" value="0"></label>
       </div>
       <div class="actions">
         <button id="mSave">Maçı Kaydet</button>
@@ -594,7 +598,9 @@ function paintSeasonStats() {
       `<div class="line">Eymen ${sum(played, "saves")} kurtarış yaptı</div>` +
       `<div class="line">Eymen ${sum(played, "ga")} gol yedi</div>` +
       `<div class="line">Eymen ${sum(played, "ast")} asist yaptı</div>` +
-      `<div class="line">Eymen ${sum(played, "goals")} gol attı</div>`;
+      `<div class="line">Eymen ${sum(played, "goals")} gol attı</div>` +
+      `<div class="line">Pas: ${passRate(sum(played, "passOk"), sum(played, "pass"))}</div>` +
+      `<div class="line">Uzun pas: ${passRate(sum(played, "longOk"), sum(played, "long"))}</div>`;
   }
   if (!document.getElementById("antStatBox").classList.contains("hidden")) {
     const labels = ["Takım Antrenmanı", "Bireysel Antrenman", "Atletik Performans", "Ev Antrenmanı"];
@@ -683,6 +689,13 @@ document.getElementById("aType").onchange = () => {
   renderA();
 };
 
+
+function passRate(ok, att) {
+  att = n(att); ok = n(ok);
+  if (att <= 0) return "—";
+  if (ok > att) ok = att;
+  return ok + "/" + att + " (%" + Math.round(ok / att * 100) + " isabet)";
+}
 function readMatch() {
   return {
     id: mEdit || Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
@@ -697,7 +710,11 @@ function readMatch() {
     goals: n(document.getElementById("mGoals").value),
     ga: n(document.getElementById("mGA").value),
     ast: n(document.getElementById("mAst").value),
-    saves: n(document.getElementById("mSaves").value)
+    saves: n(document.getElementById("mSaves").value),
+    pass: n(document.getElementById("mPass").value),
+    passOk: n(document.getElementById("mPassOk").value),
+    long: n(document.getElementById("mLong").value),
+    longOk: n(document.getElementById("mLongOk").value)
   };
 }
 function fillMatch(m) {
@@ -708,21 +725,23 @@ function fillMatch(m) {
   document.getElementById("mScore").value = m.score || "";
   document.getElementById("mResult").value = m.result || "Galibiyet";
   document.getElementById("mPlayed").value = m.played || "evet";
-  ["mMin","mGoals","mGA","mAst","mSaves"].forEach((id, i) => {
-    document.getElementById(id).value = [m.min, m.goals, m.ga, m.ast, m.saves][i] ?? 0;
+  ["mMin","mGoals","mGA","mAst","mSaves","mPass","mPassOk","mLong","mLongOk"].forEach((id, i) => {
+    document.getElementById(id).value = [m.min, m.goals, m.ga, m.ast, m.saves, m.pass, m.passOk, m.long, m.longOk][i] ?? 0;
   });
 }
 function clearMatch() {
   mEdit = null;
   document.getElementById("mSave").textContent = "Maçı Kaydet";
-  fillMatch({ team: state.team, min: 0, goals: 0, ga: 0, ast: 0, saves: 0 });
+  fillMatch({ team: state.team, min: 0, goals: 0, ga: 0, ast: 0, saves: 0, pass: 0, passOk: 0, long: 0, longOk: 0 });
   document.getElementById("mOpp").value = "";
   document.getElementById("mScore").value = "";
 }
 document.getElementById("mSave").onclick = () => {
   const m = readMatch();
   if (!m.date || !m.opp) { alert("Tarih Ve rakip takım gerekli."); return; }
-  if (m.played === "hayir") { m.min = m.goals = m.ga = m.ast = m.saves = 0; }
+  if (m.played === "hayir") { m.min = m.goals = m.ga = m.ast = m.saves = m.pass = m.passOk = m.long = m.longOk = 0; }
+  if (m.passOk > m.pass) m.passOk = m.pass;
+  if (m.longOk > m.long) m.longOk = m.long;
   const bag = cur();
   const i = bag.matches.findIndex(x => x.id === m.id);
   if (i >= 0) bag.matches[i] = m; else bag.matches.push(m);
@@ -784,7 +803,9 @@ function renderMacEymen() {
     `<div class="line">Eymen ${sum("saves")} kurtarış yaptı</div>` +
     `<div class="line">Eymen ${sum("ga")} gol yedi</div>` +
     `<div class="line">Eymen ${sum("ast")} asist yaptı</div>` +
-    `<div class="line">Eymen ${sum("goals")} gol attı</div>`;
+    `<div class="line">Eymen ${sum("goals")} gol attı</div>` +
+    `<div class="line">Pas: ${passRate(sum("passOk"), sum("pass"))}</div>` +
+    `<div class="line">Uzun pas: ${passRate(sum("longOk"), sum("long"))}</div>`;
 }
 function renderM() {
   const rows = [...cur().matches].sort((a, b) => (b.date || "").localeCompare(a.date || ""));
@@ -796,7 +817,9 @@ function renderM() {
         `<div class="detail">${m.goals} Gol Attı</div>` +
         `<div class="detail">${m.ga} Gol Yedi</div>` +
         `<div class="detail">${m.ast} Asist Yaptı</div>` +
-        `<div class="detail">${m.saves} Kurtarış Yaptı</div>`;
+        `<div class="detail">${m.saves} Kurtarış Yaptı</div>` +
+        `<div class="detail">Pas: ${passRate(m.passOk, m.pass)}</div>` +
+        `<div class="detail">Uzun pas: ${passRate(m.longOk, m.long)}</div>`;
     const tools = open ? body + `<div class="actions"><button class="ghost" data-medit="${m.id}">Düzenle</button> <button class="warn" data-mdel="${m.id}">Sil</button></div>` : "";
     return `<button type="button" class="match-row" data-mopen="${m.id}">${esc(matchTitle(m))}</button>${tools}`;
   }).join("") : `<p class="note">${esc(state.active)} Sezonunda maç yok.</p>`;
@@ -1015,7 +1038,9 @@ function reportSheet() {
     [sum(played, "saves"), "Kurtarış"],
     [sum(played, "ga"), "Yediği Gol"],
     [sum(played, "ast"), "Asist"],
-    [sum(played, "goals"), "Attığı Gol"]
+    [sum(played, "goals"), "Attığı Gol"],
+    [passRate(sum(played, "passOk"), sum(played, "pass")), "Pas"],
+    [passRate(sum(played, "longOk"), sum(played, "long")), "Uzun pas"]
   ].map(([num, label]) => `<div class="pdf-card"><b>${num}</b><span>${label}</span></div>`).join("");
   const typeBlocks = TYPES.map((type, i) => {
     const xs = trains.filter(t => t.type === type);
