@@ -712,6 +712,12 @@ function passPct(ok, att) {
   if (ok > att) ok = att;
   return "%" + Math.round(ok / att * 100);
 }
+function passAdet(ok, att) {
+  att = n(att); ok = n(ok);
+  if (att <= 0) return "0 adet";
+  if (ok > att) ok = att;
+  return ok + "/" + att + " adet";
+}
 function readMatch() {
   return {
     id: mEdit || Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
@@ -1056,7 +1062,7 @@ function reportSheet() {
     [sum(played, "ast"), "Asist"],
     [sum(played, "goals"), "Attığı Gol"]
   ].map(([num, label]) => `<div class="pdf-card"><b>${num}</b><span>${label}</span></div>`).join("");
-  const passBox = `<div class="pdf-pass"><div class="pdf-pass-row"><span>Pas</span><b>${passPct(sum(played, "passOk"), sum(played, "pass"))}</b></div><div class="pdf-pass-row"><span>Uzun pas</span><b>${passPct(sum(played, "longOk"), sum(played, "long"))}</b></div></div>`;
+  const passBox = `<div class="pdf-pass"><div class="pdf-pass-row"><span>Pas <small style="font-weight:650;color:#6d5d4e">${passAdet(sum(played, "passOk"), sum(played, "pass"))}</small></span><b>${passPct(sum(played, "passOk"), sum(played, "pass"))}</b></div><div class="pdf-pass-row"><span>Uzun pas <small style="font-weight:650;color:#6d5d4e">${passAdet(sum(played, "longOk"), sum(played, "long"))}</small></span><b>${passPct(sum(played, "longOk"), sum(played, "long"))}</b></div></div>`;
   const typeBlocks = TYPES.map((type, i) => {
     const xs = trains.filter(t => t.type === type);
     const mins = xs.reduce((s, x) => s + n(x.min), 0);
