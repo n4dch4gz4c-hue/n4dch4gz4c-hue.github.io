@@ -117,12 +117,18 @@
   .pdf-btn.hidden { display: none; }
   #pdfReport { position: fixed; left: -2600px; top: 0; width: 820px; background: #f6f1ea; color: #1c140e; font-family: "Segoe UI", sans-serif; }
   #pdfReport .pdf-chunk { width: 820px; }
-  #pdfReport .pdf-head { display: flex; gap: 16px; align-items: center; background: #1c140e; color: #fff; padding: 22px 24px; }
-  #pdfReport .crest { width: 58px; height: 58px; object-fit: contain; }
-  #pdfReport .ava { width: 74px; height: 74px; border-radius: 50%; object-fit: cover; border: 3px solid #e07a32; }
-  #pdfReport .pdf-kicker { color: #f3d27a; letter-spacing: .16em; font-size: 11px; font-weight: 700; }
-  #pdfReport h1 { margin: 2px 0; font-size: 30px; color: #fff; }
-  #pdfReport .pdf-sub { color: #f0e6d6; font-size: 14px; }
+  #pdfReport .pdf-head { display: flex; gap: 14px; align-items: stretch; justify-content: space-between; background: #1c140e; color: #fff; padding: 18px 18px; }
+  #pdfReport .pdf-team, #pdfReport .pdf-person { border-radius: 16px; display: flex; align-items: center; gap: 14px; }
+  #pdfReport .pdf-team { flex: 1; background: #2a211b; border: 1px solid #f3d27a; padding: 14px 16px; }
+  #pdfReport .pdf-person { width: 300px; background: #fff; color: #1c140e; padding: 12px; }
+  #pdfReport .crest { width: 78px; height: 78px; object-fit: contain; background: #fff; border-radius: 12px; padding: 4px; }
+  #pdfReport .ava { width: 86px; height: 108px; border-radius: 12px; object-fit: cover; object-position: center 18%; border: 3px solid #e07a32; background: #f6f1ea; }
+  #pdfReport .pdf-kicker { color: #f3d27a; letter-spacing: .14em; font-size: 11px; font-weight: 700; }
+  #pdfReport .pdf-team h1 { margin: 2px 0; font-size: 22px; color: #fff; line-height: 1.15; }
+  #pdfReport .pdf-sub { color: #f0e6d6; font-size: 13px; margin-top: 4px; }
+  #pdfReport .pdf-person .who { color: #6d5d4e; font-size: 11px; letter-spacing: .12em; font-weight: 700; }
+  #pdfReport .pdf-person h2 { margin: 2px 0; font-size: 18px; color: #1c140e; }
+  #pdfReport .pdf-person .role { color: #c45a16; font-size: 13px; font-weight: 700; }
   #pdfReport .pdf-body { padding: 18px 22px 28px; }
   #pdfReport .pdf-sec { margin: 18px 0 8px; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; font-weight: 750; color: #1c140e; border-left: 4px solid #e07a32; padding-left: 8px; }
   #pdfReport .pdf-kpis, #pdfReport .pdf-cards { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -1073,7 +1079,7 @@ function reportSheet() {
   const host = document.createElement("div");
   host.id = "pdfReport";
   host.innerHTML =
-    chunk(`<div class="pdf-head"><img class="crest" src="umraniye-arma.png" alt=""><img class="ava" src="${photo}" alt=""><div><div class="pdf-kicker">ÜMRANİYE SPOR KULÜBÜ</div><h1>Eymen Kızılkaya</h1><div class="pdf-sub">Kaleci · ${esc(team)} · ${esc(season)} Sezon Raporu</div></div></div>`, " data-bg=\"#1c140e\"") +
+    chunk(`<div class="pdf-head"><div class="pdf-team"><img class="crest" src="umraniye-arma.png" alt=""><div><div class="pdf-kicker">TAKIM</div><h1>${esc(team)}</h1><div class="pdf-sub">Ümraniye Spor Kulübü<br>${esc(season)} Sezonu</div></div></div><div class="pdf-person"><img class="ava" src="${photo}" alt=""><div><div class="who">OYUNCU KARTI</div><h2>Eymen Kızılkaya</h2><div class="role">Kaleci</div><div class="pdf-sub" style="color:#6d5d4e">${esc(season)} sezonu</div></div></div></div>`, " data-bg=\"#1c140e\"") +
     chunk(`<div class="pdf-sec">Maç İstatistiği</div><div class="pdf-kpis">${kpi(all.length, "Toplam Maç")}${kpi(w, "Kazanılan")}${kpi(d, "Beraberlik")}${kpi(l, "Kaybedilen")}${kpi(gf, "Atılan Gol")}${kpi(ga, "Yenilen Gol")}</div>`, " data-fresh=\"1\"") +
     chunk(`<div class="pdf-sec">Maç Sonuçları</div>`, " data-fresh=\"1\" data-keep=\"1\"") +
     matchHead + matchBody +
